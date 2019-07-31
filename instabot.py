@@ -3,9 +3,11 @@
 
 from __future__ import print_function
 
-import logging
-
 import datetime
+import json
+import logging
+import re
+
 import requests
 
 from config import config
@@ -41,3 +43,31 @@ class InstaBot:
             now_time.strftime("%d.%m.%Y %H:%M")
         )
         self.logger.info(log_string)
+
+    def get_user_info(self, username):
+        self.logger.debug(f"Getting info {username}")
+        url_tag = self.url_user_detail % (username)
+        r = self.s.get(url_tag)
+        if (r.text.find("The link you followed may be broken, or the page may have been removed.") != -1):
+            log_string = f"Looks like account was deleted: {username}"
+            self.logger.debug(log_string)
+            return
+        all_data = json.loads(
+            re.search(
+                "window._sharedData = (.*?);</script>", r.text, re.DOTALL
+            ).group(1)
+        )["entry_data"]["ProfilePage"][0]
+        # open(f"{username}.json", 'w').write(json.dumps(all_data, indent=2))
+        return all_data["graphql"]["user"]
+
+    def get_media_by_tag(self, tag):
+        self.logger.debug(f"Getting media {tag}")
+        url_tag = self.url_media % (tag)
+        r = self.s.get(url_tag)
+        all_data = json.loads(
+            re.search(
+                "window._sharedData = (.*?);", r.text, re.DOTALL
+            ).group(1)
+        )["entry_data"]["PostPage"][0]
+        open(f"{tag}.json", 'w').write(json.dumps(all_data, indent=2))
+        return all_data
