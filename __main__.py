@@ -1,16 +1,44 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from instabot import InstaBot
+import logging
+
+from persistence import Persistence
+from loader import Instaloader
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger()
 
 def main():
-    instabot = InstaBot()
+    import itertools
 
-    media = instabot.get_media_by_tag("B0fxygcI0MH")
-    return
-    user = instabot.get_user_info("anikoyoga")
-    for edge in user["edge_owner_to_timeline_media"]["edges"]:
-        print(edge["node"]["shortcode"])
+    instaloader = Instaloader()
+    db = Persistence('sqlite:///instabot.sqlite3')
+    usernames = [
+        'anikoyoga'
+    ]
+
+    for username in usernames:
+        logger.info('Processing username {}'.format(username))
+        profile = instaloader.get_profile(username)
+        print(profile.filtered)
+        return
+        for post in instaloader.get_last_user_posts(username):
+            logger.info('Post {} has {} comments'.format(post.shortcode, post.comments))    
+            
+            media = db.get_media(post)
+
+            if not media or media.comments * 1.5 < post.comments:
+                logger.info('Processing comments from {}'.format(post.shortcode))
+                
+                for comment in post.get_comments():
+                    db.create_follower(comment.owner)
+
+                db.create_or_update_media(post)
+            else:
+                logger.info('Skipping post {}'.format(post.shortcode))
+    #     n = 0
+    #     break    
 
 if __name__ == '__main__':
     main()
