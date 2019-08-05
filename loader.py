@@ -17,19 +17,18 @@ FILTER_WORDS = [
     'предоплата', 'доставка', 'заказ', 'крипто', 'инвестиции', 'заработок',
 ]
 
-class Profile(Profile):
+def __filtered(self) -> str:
+    if self.followees == 0 or self.followers / self.followees > 2:
+        return 'selebgram'
+    if self.followers == 0 or self.followees / self.followers > 2:
+        return 'fake'
+    if any(ext in self.biography for ext in FILTER_WORDS):
+        logger = logging.getLogger(self.__class__.__name__)
+        logger.info('Biography filter ({}) {}'.format(self.username, self.biography))
+        return 'biography'
+    return None
 
-    @property
-    def filtered(self) -> str:
-        if self.followers == 0 or self.followees / self.followers > 2:
-            return 'selebgram'
-        if self.followees == 0 or self.followers / self.followees > 2:
-            return 'fake'
-        if any(ext in self.biography for ext in FILTER_WORDS):
-            logger = logging.getLogger(self.__class__.__name__)
-            logger.info('Biography filter ({}) {}'.format(self.username, self.biography))
-            return 'biography'
-        return None
+Profile.filtered = property(__filtered)
 
 class Instaloader:
     """

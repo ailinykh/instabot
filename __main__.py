@@ -20,9 +20,9 @@ def main():
 
     for username in usernames:
         logger.info('Processing username {}'.format(username))
-        profile = instaloader.get_profile(username)
-        print(profile.filtered)
-        return
+        # profile = instaloader.get_profile(username)
+        # print(profile.filtered)
+        
         for post in instaloader.get_last_user_posts(username):
             logger.info('Post {} has {} comments'.format(post.shortcode, post.comments))    
             
@@ -35,6 +35,7 @@ def main():
                     db.create_follower(comment.owner)
 
                 db.create_or_update_media(post)
+                return
             else:
                 logger.info('Skipping post {}'.format(post.shortcode))
     #     n = 0
