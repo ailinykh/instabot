@@ -11,6 +11,6 @@
   "license": "ISC",
   "dependencies": {
     "phantom": "^6.2.0",
-    "sqlite3": "^4.0.9"
+    "sqlite": "^3.0.3"
   }
 }
