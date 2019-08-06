@@ -13,7 +13,7 @@ def main():
     import itertools
 
     instaloader = Instaloader()
-    db = Persistence('sqlite:///instabot.sqlite3')
+    db = Persistence('sqlite:///db.sqlite3')
     usernames = [
         'anikoyoga'
     ]
@@ -33,6 +33,9 @@ def main():
                 
                 for comment in post.get_comments():
                     db.create_follower(comment.owner)
+
+                    for answer in comment.answers:
+                        db.create_follower(answer.owner)
 
                 db.create_or_update_media(post)
                 return
