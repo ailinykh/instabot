@@ -17,19 +17,23 @@ const create_snapshot = async users => {
   console.info(new Date().toLocaleTimeString(), u)
   const instance = await phantom.create()
   const page = await instance.createPage()
- 
+
   const status = await page.open(`https://instagram.com/${u.username}/`)
   if (status !== 'success')
     console.warn(status, u.username)
 
-  if (u.filtered) {
-    page.evaluate(function(text) {
+  const pageHeight = await page.evaluate(function(text) {
+    if (text) {
       var comment = document.createElement('div')
       comment.innerHTML = '<h1 style="color:red; padding-top:5px;">'+text+'</h1>'
       var header = document.querySelector("header section")
       header.appendChild(comment)
-    }, u.filtered)
-  }
+    }
+    return document.body.scrollHeight;
+  }, u.filtered)
+
+  if (pageHeight > 900)
+    page.property('clipRect', { width: 400, height: 900 })
 
   page.render(filename)
 
