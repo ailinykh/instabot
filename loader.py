@@ -13,8 +13,29 @@ import re
 
 import requests
 
-FILTER_WORDS = [
-    'предоплата', 'доставка', 'заказ', 'крипто', 'инвестиции', 'зараб', 'личка переполнена'
+SCAM_FILTER = [
+    'SMM',
+    'выезд',
+    'выплат',
+    'дeньги', # latin letters 
+    'доставка',
+    'доход',
+    'заказ',
+    'запись на',
+    'зараб',
+    'зapaб', # latin letters
+    'зарбот',
+    'инвестиции',
+    'крипто',
+    'личка переполнена',
+    'мнe пишeт', # latin letters
+    'т акции',
+    'oпpoc', # latin letters
+    'ОТВЕТ ТУТ',
+    'получаю от',
+    'предоплата',
+    'риэлтор',
+    'СММ',
 ]
 
 def __filtered(self) -> str:
@@ -24,7 +45,7 @@ def __filtered(self) -> str:
         return 'massfollower'
     # if self.followers == 0 or self.followees / self.followers > 2:
     #     return 'fake'
-    if any(ext in self.biography for ext in FILTER_WORDS):
+    if any(ext in self.biography for ext in SCAM_FILTER):
         return 'fraud'
     return None
 
