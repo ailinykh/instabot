@@ -2,31 +2,47 @@ const phantom = require('phantom')
 const sqlite = require('sqlite')
 const fs = require('fs')
 
-async function create_snapshot(username) {
-  const instance = await phantom.create();
-  const page = await instance.createPage();
-  // await page.on('onResourceRequested', function(requestData) {
-  //   console.info('Requesting', requestData.url);
-  // });
- 
-  const status = await page.open(`https://instagram.com/${username}/`);
+const create_snapshot = async users => {
+  if (users.length == 0) {
+    console.log("All done!")
+    return
+  }
 
-  page.render(`target/${username}.jpg`)
+  const u = users.shift()
+  const filename = `target/${u.filtered ? `[${u.filtered}]` : ''}${u.username}.jpg`
+  
+  if (fs.existsSync(filename)) {
+      return create_snapshot(users)
+  }
+  console.info(u)
+  const instance = await phantom.create()
+  const page = await instance.createPage()
+ 
+  const status = await page.open(`https://instagram.com/${u.username}/`)
+  if (status !== 'success')
+    console.warn(status, u.username)
+
+  if (u.filtered) {
+    page.evaluate(function(text) {
+      var comment = document.createElement('div')
+      comment.innerHTML = '<h1 style="color:red; padding-top:5px;">'+text+'</h1>'
+      var header = document.querySelector("header section")
+      header.appendChild(comment)
+    }, u.filtered)
+  }
+
+  page.render(filename)
 
   await instance.exit();
+
+  setTimeout(() => {
+    create_snapshot(users)
+  }, Math.min(Math.ceil(Math.random()*10), 5))
 }
 
 (async function() {
   const db = await sqlite.open('../db.sqlite3');
-  const data = await db.all('SELECT username, filtered FROM followers LIMIT 100')
-  let nextTimeout = 0
-  data.forEach(el => {
-    if (fs.existsSync(`target/${el.username}.jpg`))
-      return
-
-    nextTimeout = nextTimeout + Math.min(Math.ceil(Math.random()*10), 5)
-    setTimeout(() => {
-      create_snapshot(el.username)
-    }, nextTimeout)
-  })
+  const data = await db.all('SELECT username, filtered FROM followers ORDER BY RANDOM() LIMIT 500')
+  
+  await create_snapshot(data)
 }())

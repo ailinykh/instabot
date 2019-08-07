@@ -18,6 +18,8 @@ FILTER_WORDS = [
 ]
 
 def __filtered(self) -> str:
+    if self.followees > 1000:
+        return 'massfollower'
     if self.followees == 0 or self.followers / self.followees > 2:
         return 'selebgram'
     if self.followers == 0 or self.followees / self.followers > 2:
