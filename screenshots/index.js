@@ -14,7 +14,7 @@ const create_snapshot = async users => {
   if (fs.existsSync(filename)) {
       return create_snapshot(users)
   }
-  console.info(u)
+  console.info(new Date().toLocaleTimeString(), u)
   const instance = await phantom.create()
   const page = await instance.createPage()
  
