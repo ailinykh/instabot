@@ -48,8 +48,7 @@ const create_snapshot = async (u, filename) => {
     return document.body.scrollHeight;
   }, u.filtered)
 
-  if (pageHeight > 900)
-    page.property('clipRect', { width: 400, height: 900 })
+  page.property('clipRect', { width: 400, height: Math.min(pageHeight, 900) })
 
   page.render(filename)
 }
@@ -61,7 +60,6 @@ var page
   const db = await sqlite.open('../db.sqlite3');
   const data = await db.all('SELECT username, filtered FROM followers ORDER BY RANDOM() LIMIT 500')
   await db.close()
-  console.info('db closed')
 
   instance = await phantom.create()
   page = await instance.createPage()
