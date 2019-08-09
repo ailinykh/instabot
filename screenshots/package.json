@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "image-pixels": "^2.2.2",
     "phantom": "^6.2.0",
     "sqlite": "^3.0.3"
   }
