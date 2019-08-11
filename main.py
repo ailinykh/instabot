@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import logging
+import sys
 
 from persistence import Persistence
 from loader import Instaloader
@@ -9,12 +10,9 @@ from loader import Instaloader
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
 
-def main():
+def __collect_profiles(usernames):
     instaloader = Instaloader()
     db = Persistence('sqlite:///db.sqlite3')
-    usernames = [
-        'doctor_zubareva'
-    ]
 
     for username in usernames:
         logger.info('Processing username {}'.format(username))
@@ -36,7 +34,7 @@ def main():
                         db.create_follower(answer.owner)
 
                 db.create_or_update_media(post)
-                return
+                # return
             else:
                 logger.info('Skipping post {}'.format(post.shortcode))
     #     n = 0
@@ -44,10 +42,30 @@ def main():
 
 def test():
     instaloader = Instaloader()
-    profile = instaloader.get_profile('doctor_zubareva')
-    print(profile)
+    profile = instaloader.get_profile('madonna')
+    print(profile._asdict())
     print(profile.filtered)
 
+def collect():
+    __collect_profiles([
+        # 'doctor_zubareva'
+        'anikoyoga'
+    ])
+
+def job(): # workflow
+    # check if not sibscribe limit
+    instaloader = Instaloader()
+    instaloader.login('login', 'pass')
+    profile = instaloader.get_profile('madonna')
+    instaloader.unfollow_user(profile)
+    pass
+
+
 if __name__ == '__main__':
-    # main()
-    test()
+    if len(sys.argv) > 1:
+        func = locals()[sys.argv[1]] if sys.argv[1] in locals() else sys.argv[1]
+        if callable(func):
+            print('Invoking {}()'.format(func.__name__))
+            func()
+        else:
+            print('{} is not callable'.format(func))

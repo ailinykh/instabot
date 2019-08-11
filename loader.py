@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
+from functools import wraps
+from typing import Any, Callable, Iterator, List, Optional, Set, Union
 
 from instaloader import InstaloaderContext
 from instaloader import Profile
@@ -9,6 +11,7 @@ from instaloader import Post
 
 import datetime
 import logging
+import os
 import re
 
 import requests
@@ -88,6 +91,22 @@ def __filtered(self) -> str:
 
 Profile.filtered = property(__filtered)
 
+def copy_session(session: requests.Session) -> requests.Session:
+    """Duplicates a requests.Session."""
+    new = requests.Session()
+    new.cookies = requests.utils.cookiejar_from_dict(requests.utils.dict_from_cookiejar(session.cookies))
+    new.headers = session.headers.copy() # type: ignore
+    return new
+
+def _requires_login(func: Callable) -> Callable:
+    """Decorator to raise an exception if herewith-decorated function is called without being logged in"""
+    @wraps(func)
+    def call(instaloader, *args, **kwargs):
+        if not instaloader.c.is_logged_in:
+            raise LoginRequiredException("Login required.")
+        return func(instaloader, *args, **kwargs)
+    return call
+
 class Instaloader:
     """
     Instaloader
@@ -110,6 +129,25 @@ class Instaloader:
         )
         self.logger.info(log_string)
 
+    def login(self, username, password):
+        filename = 'session-' + username.lower()
+        try:
+            with open(filename, 'rb') as filename:
+                self.c.load_session_from_file(username, filename)
+                self.c.log("Loaded session from %s." % filename)
+        except FileNotFoundError as err:
+            self.c.log("Session file does not exist yet - Logging in.")
+        if not self.c.is_logged_in or username != self.c.test_login():
+            try:
+                self.c.login(username, password)
+            except TwoFactorAuthRequiredException:
+                self.c.log("2FA required!")
+            with open(filename, 'wb') as sessionfile:
+                os.chmod(filename, 0o600)
+                self.c.save_session_to_file(sessionfile)
+                self.c.log("Saved session to %s." % filename)
+        self.c.log("Logged in as %s." % username)
+        
     def get_profile(self, username:str) -> Profile:
         return Profile.from_username(self.c, username)
 
@@ -117,4 +155,17 @@ class Instaloader:
         self.logger.debug(f"Getting last posts for {username}")
         profile = Profile(self.c, {"username": username})
         return [x for _, x in zip(range(count), profile.get_posts())]
-        
+
+    @_requires_login
+    def follow_user(self, profile:Profile):
+        with copy_session(self.c._session) as tmpsession:
+            tmpsession.headers['referer'] = 'https://www.instagram.com/%s/' % profile.username
+            res = tmpsession.post('https://www.instagram.com/web/friendships/%d/follow/' % profile.userid)
+            print(res.text)
+
+    @_requires_login
+    def unfollow_user(self, profile:Profile):
+        with copy_session(self.c._session) as tmpsession:
+            tmpsession.headers['referer'] = 'https://www.instagram.com/%s/' % profile.username
+            res = tmpsession.post('https://www.instagram.com/web/friendships/%d/unfollow/' % profile.userid)
+            print(res.text)

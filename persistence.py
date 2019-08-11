@@ -14,7 +14,8 @@ Base = declarative_base()
 
 class Follower(Base):
     __tablename__ = 'followers'
-    username = Column(String, primary_key=True)
+    userid = Column(Integer, primary_key=True)
+    username = Column(String)
     followers = Column(Integer, default=0)
     followees = Column(Integer, default=0)
     media = Column(Integer, default=0)
@@ -46,6 +47,7 @@ class Persistence():
         if self.get_follower(profile) is not None:
             return
         follower = Follower(
+            userid=profile.userid,
             username=profile.username,
             followers=profile.followers,
             followees=profile.followees,
