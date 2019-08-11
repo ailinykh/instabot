@@ -10,12 +10,10 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
 
 def main():
-    import itertools
-
     instaloader = Instaloader()
     db = Persistence('sqlite:///db.sqlite3')
     usernames = [
-        'anikoyoga'
+        'doctor_zubareva'
     ]
 
     for username in usernames:
@@ -44,5 +42,12 @@ def main():
     #     n = 0
     #     break    
 
+def test():
+    instaloader = Instaloader()
+    profile = instaloader.get_profile('doctor_zubareva')
+    print(profile)
+    print(profile.filtered)
+
 if __name__ == '__main__':
-    main()
+    # main()
+    test()

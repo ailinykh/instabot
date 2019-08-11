@@ -17,16 +17,20 @@ SCAM_FILTER = [
     'SMM',
     'выезд',
     'выплат',
+    'гарантия',
+    'деньги',
     'дeньги', # latin letters 
-    'доставка',
+    'оставка',
     'доход',
     'заказ',
     'запись на',
     'зараб',
     'зapaб', # latin letters
     'зарбот',
+    # 'зож', # regexp needed
     'инвестиции',
     'крипто',
+    'коммерч',
     'личка переполнена',
     'мнe пишeт', # latin letters
     'т акции',
@@ -34,8 +38,39 @@ SCAM_FILTER = [
     'ОТВЕТ ТУТ',
     'получаю от',
     'предоплата',
+    'продам',
+    'продаю',
+    'продвижение',
+    'раскрутка',
+    'скидк',
+]
+
+AUDIENCE_FILTER = [
+    ' ПП',
+    'без сахара',
+    'врач',
+    'комплексный подход',
+    'консульт',
+    'копирайт',
+    'косметолог',
+    'коуч',
+    'нутрициолог',
+    'оптом',
+    'питание',
+    'подписывайтесь',
+    'помощник',
+    'правильн',
+    'марафон',
+    'менеджер',
+    'разбогатеть',
+    'ручная работа',
+    'ручной работы',
     'риэлтор',
     'СММ',
+    'твой личный',
+    'только по в',
+    'требуются',
+    'тренер',
 ]
 
 def __filtered(self) -> str:
@@ -43,10 +78,12 @@ def __filtered(self) -> str:
         return 'selebgram'
     if self.followees > 1000:
         return 'massfollower'
-    # if self.followers == 0 or self.followees / self.followers > 2:
-    #     return 'fake'
+    if self.followers == 0:
+        return 'fake'
     if any(ext in self.biography for ext in SCAM_FILTER):
         return 'fraud'
+    if any(ext in self.biography for ext in AUDIENCE_FILTER):
+        return 'non-target'
     return None
 
 Profile.filtered = property(__filtered)
