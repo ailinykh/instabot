@@ -5,9 +5,7 @@ from __future__ import print_function
 from functools import wraps
 from typing import Any, Callable, Iterator, List, Optional, Set, Union
 
-from instaloader import InstaloaderContext
-from instaloader import Profile
-from instaloader import Post
+from instaloader import InstaloaderContext, Post, Profile
 
 import datetime
 import logging
@@ -133,8 +131,8 @@ class Instaloader:
     def login(self, username, password):
         filename = 'session-' + username.lower()
         try:
-            with open(filename, 'rb') as filename:
-                self.c.load_session_from_file(username, filename)
+            with open(filename, 'rb') as sessionfile:
+                self.c.load_session_from_file(username, sessionfile)
                 self.c.log("Loaded session from %s." % filename)
         except FileNotFoundError as err:
             self.c.log("Session file does not exist yet - Logging in.")
@@ -152,6 +150,9 @@ class Instaloader:
     def get_profile(self, username:str) -> Profile:
         return Profile.from_username(self.c, username)
 
+    def get_post(self, shortcode:str) -> Post:
+        return Post.from_shortcode(self.c, shortcode)
+
     def get_last_user_posts(self, username: str, count: int = 10) -> [Post]:
         self.logger.debug(f"Getting last posts for {username}")
         profile = Profile(self.c, {"username": username})
@@ -162,11 +163,25 @@ class Instaloader:
         with copy_session(self.c._session) as tmpsession:
             tmpsession.headers['referer'] = 'https://www.instagram.com/%s/' % profile.username
             res = tmpsession.post('https://www.instagram.com/web/friendships/%d/follow/' % profile.userid)
-            print(res.text)
+            return res.json()
 
     @_requires_login
     def unfollow_user(self, profile:Profile):
         with copy_session(self.c._session) as tmpsession:
             tmpsession.headers['referer'] = 'https://www.instagram.com/%s/' % profile.username
             res = tmpsession.post('https://www.instagram.com/web/friendships/%d/unfollow/' % profile.userid)
-            print(res.text)
+            return res.json()
+
+    @_requires_login
+    def like_post(self, post:Post):
+        with copy_session(self.c._session) as tmpsession:
+            tmpsession.headers['referer'] = 'https://www.instagram.com/p/%s/' % post.shortcode
+            res = tmpsession.post('https://www.instagram.com/web/likes/%d/like/' % post.mediaid)
+            return res.json()
+
+    @_requires_login
+    def unlike_post(self, post:Post):
+        with copy_session(self.c._session) as tmpsession:
+            tmpsession.headers['referer'] = 'https://www.instagram.com/p/%s/' % post.shortcode
+            res = tmpsession.post('https://www.instagram.com/web/likes/%d/unlike/' % post.mediaid)
+            return res.json()

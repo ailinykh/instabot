@@ -6,6 +6,7 @@ import sys
 
 from persistence import Persistence
 from loader import Instaloader
+from config import config
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
@@ -55,11 +56,10 @@ def collect():
 def job(): # workflow
     # check if not sibscribe limit
     instaloader = Instaloader()
-    instaloader.login('login', 'pass')
-    profile = instaloader.get_profile('madonna')
-    instaloader.unfollow_user(profile)
-    pass
-
+    instaloader.login(
+        config.get('login'),
+        config.get('password')
+        )
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:
