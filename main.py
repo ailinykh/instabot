@@ -54,12 +54,25 @@ def collect():
     ])
 
 def job(): # workflow
-    # check if not sibscribe limit
     instaloader = Instaloader()
     instaloader.login(
         config.get('login'),
         config.get('password')
         )
+    db = Persistence('sqlite:///db.sqlite3')
+    # check if not sibscribe limit
+    recent_followees = db.get_resent_followees()
+    if len(recent_followees) < 1:
+        candidate = db.get_candidate_to_follow()
+        profile = instaloader.get_profile(candidate.username)
+        j = instaloader.follow_user(profile)
+        if j['status'] == 'ok':
+            logger.info('Successfully followed {}'.format(profile.username))
+            db.update_last_followed(profile.username)
+        else:
+            logger.info('Bad status {}'.format(j))
+    else:
+        logger.info('Daily followees limit reached')
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:

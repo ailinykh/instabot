@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from sqlalchemy import Column, Integer, String, DateTime
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, desc
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.sql import func
 
 from instaloader import Post, Profile
 
@@ -62,7 +63,8 @@ class Persistence():
 
     def get_follower(self, profile: Profile):
         return self._session.query(Follower) \
-            .filter(Follower.username == profile.username).first()
+            .filter(Follower.username == profile.username) \
+            .one_or_none()
 
     def create_or_update_media(self, post: Post):
         media = self.get_media(post)
@@ -70,10 +72,36 @@ class Persistence():
             media.updated = datetime.now()
             media.comments = post.comments()
         else:
-            media = Media(shortcode=post.shortcode, comments=post.comments, created=datetime.now(), updated=datetime.now())
+            media = Media(
+                shortcode=post.shortcode, 
+                comments=post.comments,
+                created=datetime.now(),
+                updated=datetime.now()
+                )
             self._session.add(media)
         self._session.commit()
 
     def get_media(self, post: Post):
         return self._session.query(Media) \
             .filter(Media.shortcode == post.shortcode).first()
+
+    def get_resent_followees(self, seconds: int = 86400):
+        now_time = datetime.now()
+        cut_off_time = now_time - timedelta(seconds=seconds)
+        return self._session.query(Follower) \
+            .filter(Follower.last_followed > cut_off_time) \
+            .order_by(desc(Follower.last_followed)) \
+            .all()
+
+    def get_candidate_to_follow(self):
+        return self._session.query(Follower) \
+            .filter(Follower.last_followed == None) \
+            .filter(Follower.followed_back == None) \
+            .filter(Follower.filtered == None) \
+            .order_by(func.random()) \
+            .first()
+
+    def update_last_followed(self, username: str):
+        follower = self._session.query(Follower).filter(Follower.username == username).first()
+        follower.last_followed = datetime.now()
+        self._session.commit()
