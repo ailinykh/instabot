@@ -8,4 +8,4 @@ from config42 import ConfigManager
 # logging.basicConfig(level=logging.DEBUG)
 LOGGER = logging.getLogger(__name__)
 
-config = ConfigManager(path='config.yml')
+config = ConfigManager(path='./config.yml')

@@ -44,6 +44,7 @@ class Persistence():
         self._Session = sessionmaker(bind=self._engine)
         self._session = self._Session()
 
+
     def create_follower(self, profile: Profile):
         if self.get_follower(profile) is not None:
             return

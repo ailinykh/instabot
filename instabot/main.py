@@ -8,6 +8,8 @@ import pickle
 import random
 import sys
 
+from instaloader import ProfileNotExistsException
+
 from persistence import Persistence
 from loader import Instaloader
 from config import config
@@ -62,12 +64,24 @@ def job(): # workflow
     recent_followees = db.get_resent_followees()
     if len(recent_followees) < 1:
         candidate = db.get_candidate_to_follow()
-        profile = instaloader.get_profile(candidate.username)
 
-        # already follower
+        try:
+            profile = instaloader.get_profile(candidate.username)
+        except ProfileNotExistsException:
+            logger.info('Profile {} not found.'.format(candidate.username))
+            #TODO remove from db
+            return
+
+        # check already follower
         if profile.follows_viewer:
             logger.info('{} already a follower'.format(profile.username))
             db.update_comment(profile.username, 'already follower')
+            return
+
+        # check already followed
+        if profile.followed_by_viewer:
+            logger.info('{} already followed'.format(profile.username))
+            db.update_comment(profile.username, 'already followed')
             return
 
         # like some media
@@ -88,8 +102,11 @@ def job(): # workflow
             db.update_last_followed(profile.username)
         else:
             logger.info('Bad status {}'.format(j))
+
+        #TODO check who follows back
     else:
         logger.info('Daily followees limit reached')
+
 
 def session(jsn: str, filename: str):
     if jsn is None or filename is None:
@@ -106,6 +123,12 @@ def print_session(filename: str):
 
 def test(*args, **kwargs):
     print('test', args, kwargs)
+    instaloader = Instaloader()
+
+    try:
+        profile = instaloader.get_profile('lilkus_levelap')
+    except ProfileNotExistsException:
+        print('LAL')
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:
