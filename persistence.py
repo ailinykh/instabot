@@ -105,3 +105,8 @@ class Persistence():
         follower = self._session.query(Follower).filter(Follower.username == username).first()
         follower.last_followed = datetime.now()
         self._session.commit()
+
+    def update_comment(self, username, comment):
+        follower = self._session.query(Follower).filter(Follower.username == username).first()
+        follower.comment = comment
+        self._session.commit()

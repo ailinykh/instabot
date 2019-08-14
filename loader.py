@@ -5,7 +5,7 @@ from __future__ import print_function
 from functools import wraps
 from typing import Any, Callable, Iterator, List, Optional, Set, Union
 
-from instaloader import InstaloaderContext, Post, Profile
+from instaloader import InstaloaderContext, Post, Profile, TwoFactorAuthRequiredException
 
 import datetime
 import logging
@@ -160,6 +160,8 @@ class Instaloader:
 
     @_requires_login
     def follow_user(self, profile:Profile):
+        assert not profile.followed_by_viewer, 'You must unfollow to follow'
+        self.c.do_sleep()
         with copy_session(self.c._session) as tmpsession:
             tmpsession.headers['referer'] = 'https://www.instagram.com/%s/' % profile.username
             res = tmpsession.post('https://www.instagram.com/web/friendships/%d/follow/' % profile.userid)
@@ -167,6 +169,8 @@ class Instaloader:
 
     @_requires_login
     def unfollow_user(self, profile:Profile):
+        assert profile.followed_by_viewer, 'You must follow to unfollow'
+        self.c.do_sleep()
         with copy_session(self.c._session) as tmpsession:
             tmpsession.headers['referer'] = 'https://www.instagram.com/%s/' % profile.username
             res = tmpsession.post('https://www.instagram.com/web/friendships/%d/unfollow/' % profile.userid)
@@ -174,6 +178,7 @@ class Instaloader:
 
     @_requires_login
     def like_post(self, post:Post):
+        self.c.do_sleep()
         with copy_session(self.c._session) as tmpsession:
             tmpsession.headers['referer'] = 'https://www.instagram.com/p/%s/' % post.shortcode
             res = tmpsession.post('https://www.instagram.com/web/likes/%d/like/' % post.mediaid)
@@ -181,6 +186,7 @@ class Instaloader:
 
     @_requires_login
     def unlike_post(self, post:Post):
+        self.c.do_sleep()
         with copy_session(self.c._session) as tmpsession:
             tmpsession.headers['referer'] = 'https://www.instagram.com/p/%s/' % post.shortcode
             res = tmpsession.post('https://www.instagram.com/web/likes/%d/unlike/' % post.mediaid)

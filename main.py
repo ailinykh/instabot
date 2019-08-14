@@ -2,6 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import logging
+import json
+import os
+import pickle
+import random
 import sys
 
 from persistence import Persistence
@@ -41,12 +45,6 @@ def __collect_profiles(usernames):
     #     n = 0
     #     break    
 
-def test():
-    instaloader = Instaloader()
-    profile = instaloader.get_profile('madonna')
-    print(profile._asdict())
-    print(profile.filtered)
-
 def collect():
     __collect_profiles([
         # 'doctor_zubareva'
@@ -65,6 +63,25 @@ def job(): # workflow
     if len(recent_followees) < 1:
         candidate = db.get_candidate_to_follow()
         profile = instaloader.get_profile(candidate.username)
+
+        # already follower
+        if profile.follows_viewer:
+            logger.info('{} already a follower'.format(profile.username))
+            db.update_comment(profile.username, 'already follower')
+            return
+
+        # like some media
+        likes_needed = random.randrange(4)
+        likes_affixed = 0
+        for post in profile.get_posts():
+            if likes_affixed == likes_needed:
+                break
+            logger.info('Like post {}'.format(post.shortcode))
+            instaloader.like_post(post)
+            likes_affixed += 1
+
+        # all ok. Trying to follow
+        logger.info('Following {}...'.format(profile.username))
         j = instaloader.follow_user(profile)
         if j['status'] == 'ok':
             logger.info('Successfully followed {}'.format(profile.username))
@@ -73,6 +90,19 @@ def job(): # workflow
             logger.info('Bad status {}'.format(j))
     else:
         logger.info('Daily followees limit reached')
+
+def session():
+    if len(sys.argv) < 4:
+        exit('usage: python {} session session_json session_file'.format(sys.argv[0]))
+    
+    session = json.loads(sys.argv[2])
+    with open(sys.argv[3], 'wb') as sessionfile:
+        os.chmod(sys.argv[3], 0o600)
+        pickle.dump(session, sessionfile)
+
+def print_session():
+    with open(sys.argv[2], 'rb') as sessionfile:
+        print(json.dumps(pickle.load(sessionfile)))
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:
