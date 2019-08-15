@@ -113,6 +113,11 @@ class Instaloader:
     """
 
     url = "https://www.instagram.com/"
+    url_like = "https://www.instagram.com/web/likes/%s/like/"
+    url_unlike = "https://www.instagram.com/web/likes/%s/unlike/"
+    url_comment = "https://www.instagram.com/web/comments/%s/add/"
+    url_follow = "https://www.instagram.com/web/friendships/%s/follow/"
+    url_unfollow = "https://www.instagram.com/web/friendships/%s/unfollow/"
     url_media = "https://www.instagram.com/p/%s/"
     url_user_detail = "https://www.instagram.com/%s/"
 
@@ -163,8 +168,8 @@ class Instaloader:
         assert not profile.followed_by_viewer, 'You must unfollow to follow'
         self.c.do_sleep()
         with copy_session(self.c._session) as tmpsession:
-            tmpsession.headers['referer'] = 'https://www.instagram.com/%s/' % profile.username
-            res = tmpsession.post('https://www.instagram.com/web/friendships/%d/follow/' % profile.userid)
+            tmpsession.headers['referer'] = self.url_user_detail % profile.username
+            res = tmpsession.post(self.url_follow % profile.userid)
             return res.json()
 
     @_requires_login
@@ -172,22 +177,22 @@ class Instaloader:
         assert profile.followed_by_viewer, 'You must follow to unfollow'
         self.c.do_sleep()
         with copy_session(self.c._session) as tmpsession:
-            tmpsession.headers['referer'] = 'https://www.instagram.com/%s/' % profile.username
-            res = tmpsession.post('https://www.instagram.com/web/friendships/%d/unfollow/' % profile.userid)
+            tmpsession.headers['referer'] = self.url_user_detail % profile.username
+            res = tmpsession.post(self.url_unfollow % profile.userid)
             return res.json()
 
     @_requires_login
     def like_post(self, post:Post):
         self.c.do_sleep()
         with copy_session(self.c._session) as tmpsession:
-            tmpsession.headers['referer'] = 'https://www.instagram.com/p/%s/' % post.shortcode
-            res = tmpsession.post('https://www.instagram.com/web/likes/%d/like/' % post.mediaid)
+            tmpsession.headers['referer'] = self.url_media % post.shortcode
+            res = tmpsession.post(self.url_like % post.mediaid)
             return res.json()
 
     @_requires_login
     def unlike_post(self, post:Post):
         self.c.do_sleep()
         with copy_session(self.c._session) as tmpsession:
-            tmpsession.headers['referer'] = 'https://www.instagram.com/p/%s/' % post.shortcode
-            res = tmpsession.post('https://www.instagram.com/web/likes/%d/unlike/' % post.mediaid)
+            tmpsession.headers['referer'] = self.url_media % post.shortcode
+            res = tmpsession.post(self.url_unlike % post.mediaid)
             return res.json()
