@@ -75,7 +75,7 @@ AUDIENCE_FILTER = [
     'тренер',
 ]
 
-def __filtered(self) -> str:
+def _filtered(self) -> str:
     if self.followees == 0 or self.followers / self.followees > 2 and self.followers > 1000:
         return 'selebgram'
     if self.followees > 1000:
@@ -88,7 +88,7 @@ def __filtered(self) -> str:
         return 'non-target'
     return None
 
-Profile.filtered = property(__filtered)
+Profile.filtered = property(_filtered)
 
 def copy_session(session: requests.Session) -> requests.Session:
     """Duplicates a requests.Session."""

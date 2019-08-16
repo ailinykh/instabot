@@ -17,7 +17,7 @@ from config import config
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
 
-def __collect_profiles(usernames):
+def _collect_profiles(usernames):
     instaloader = Instaloader()
     db = Persistence('sqlite:///db.sqlite3')
 
@@ -48,7 +48,7 @@ def __collect_profiles(usernames):
     #     break    
 
 def collect():
-    __collect_profiles([
+    _collect_profiles([
         # 'doctor_zubareva'
         'anikoyoga'
     ])
