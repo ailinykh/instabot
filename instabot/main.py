@@ -12,9 +12,9 @@ from datetime import datetime
 from functools import wraps
 from typing import Callable
 
-from instaloader import ProfileNotExistsException
+from instaloader import Profile, ProfileNotExistsException
 
-from persistence import Persistence
+from persistence import Follower, Persistence
 from loader import Instaloader
 from config import config
 
@@ -72,55 +72,63 @@ def job(): # workflow
         config.get('password')
         )
     db = Persistence('sqlite:///db.sqlite3')
-    # check if not sibscribe limit
-    recent_followees = db.get_resent_followees()
-    if len(recent_followees) < 5:
-        candidate = db.get_candidate_to_follow()
-
+    
+    def get_valid_profile(candidate: Follower) -> Profile:
         try:
             profile = instaloader.get_profile(candidate.username)
         except ProfileNotExistsException:
-            logger.info('Profile {} not found.'.format(candidate.username))
+            logger.info(f'Profile {candidate.username} not found.')
             db.update(candidate, filtered='user not found')
-            return
+            return None
 
         # check already follower
         if profile.follows_viewer:
-            logger.info('{} already a follower'.format(profile.username))
+            logger.info(f'{profile.username} already a follower')
             db.update(candidate, filtered='already follower')
-            return
+            return None
 
         # check already followed
         if profile.followed_by_viewer:
-            logger.info('{} already followed'.format(profile.username))
+            logger.info(f'{profile.username} already followed')
             db.update(candidate, filtered='already followed')
-            return
+            return None
+        
+        return profile
 
-        # like some media
-        if not profile.is_private:
-            logger.info('Profile not private')
-            likes_needed = random.randrange(4)
-            likes_affixed = 0
+    
+    # check limits
+    likes_available = 60 - len(db.get_resent_likes())
+    follows_available = 60 - (len(db.get_resent_followees()) + len(db.get_resent_unfollowees()))
+
+    logger.info(f'Available: likes {likes_available}, follows {follows_available}')
+
+    if likes_available > 0:
+        candidate = db.get_candidate_to_like()
+        profile = get_valid_profile(candidate)
+
+        if profile is not None:
             for post in profile.get_posts():
-                if likes_affixed == likes_needed:
-                    break
-                logger.info('Like post {}'.format(post.shortcode))
-                instaloader.like_post(post)
-                likes_affixed += 1
-                db.update(candidate, last_liked=datetime.now())
+                j, ok = instaloader.like_post(post)
+                if ok:
+                    logger.info(f'Successfully liked post {post.shortcode} by {profile.username}')
+                    db.update(candidate, last_liked=datetime.now())
+                else:
+                    logger.info(f'Bad status {j}')
+                break
 
-        # all ok. Trying to follow
-        logger.info('Following {}...'.format(profile.username))
-        j = instaloader.follow_user(profile)
-        if j['status'] == 'ok':
-            logger.info('Successfully followed {}'.format(profile.username))
-            db.update(candidate, last_followed=datetime.now())
-        else:
-            logger.info('Bad status {}'.format(j))
+    if follows_available > 0:
+        candidate = db.get_candidate_to_follow()
+        profile = get_valid_profile(candidate)
+
+        if profile is not None:
+            j, ok = instaloader.follow_user(profile)
+            if ok:
+                logger.info(f'Successfully followed {profile.username}')
+                db.update(candidate, last_followed=datetime.now())
+            else:
+                logger.info(f'Bad status {j}')
 
         #TODO check who follows back
-    else:
-        logger.info('Daily followees limit reached')
 
 
 def session(jsn: str, filename: str):

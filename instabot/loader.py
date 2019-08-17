@@ -3,7 +3,7 @@
 
 from __future__ import print_function
 from functools import wraps
-from typing import Any, Callable, Iterator, List, Optional, Set, Union
+from typing import Any, Callable, Dict, Iterator, List, Optional, Set, Union
 
 from instaloader import InstaloaderContext, Post, Profile, TwoFactorAuthRequiredException
 
@@ -22,6 +22,7 @@ SCAM_FILTER = [
     'деньги',
     'дeньги', # latin letters 
     'оставка',
+    'дeeньги',
     'доход',
     'заказ',
     'запись на',
@@ -164,35 +165,35 @@ class Instaloader:
         return [x for _, x in zip(range(count), profile.get_posts())]
 
     @_requires_login
-    def follow_user(self, profile:Profile):
+    def follow_user(self, profile:Profile) -> (Dict, bool):
         assert not profile.followed_by_viewer, 'You must unfollow to follow'
         self.c.do_sleep()
         with copy_session(self.c._session) as tmpsession:
             tmpsession.headers['referer'] = self.url_user_detail % profile.username
             res = tmpsession.post(self.url_follow % profile.userid)
-            return res.json()
+            return res.json(), res.status_code == 200
 
     @_requires_login
-    def unfollow_user(self, profile:Profile):
+    def unfollow_user(self, profile:Profile) -> (Dict, bool):
         assert profile.followed_by_viewer, 'You must follow to unfollow'
         self.c.do_sleep()
         with copy_session(self.c._session) as tmpsession:
             tmpsession.headers['referer'] = self.url_user_detail % profile.username
             res = tmpsession.post(self.url_unfollow % profile.userid)
-            return res.json()
+            return res.json(), res.status_code == 200
 
     @_requires_login
-    def like_post(self, post:Post):
+    def like_post(self, post:Post) -> (Dict, bool):
         self.c.do_sleep()
         with copy_session(self.c._session) as tmpsession:
             tmpsession.headers['referer'] = self.url_media % post.shortcode
             res = tmpsession.post(self.url_like % post.mediaid)
-            return res.json()
+            return res.json(), res.status_code == 200
 
     @_requires_login
-    def unlike_post(self, post:Post):
+    def unlike_post(self, post:Post) -> (Dict, bool):
         self.c.do_sleep()
         with copy_session(self.c._session) as tmpsession:
             tmpsession.headers['referer'] = self.url_media % post.shortcode
             res = tmpsession.post(self.url_unlike % post.mediaid)
-            return res.json()
+            return res.json(), res.status_code == 200

@@ -62,7 +62,7 @@ class Persistence():
         self._session.add(follower)
         self._session.commit()
 
-    def get_follower(self, profile: Profile):
+    def get_follower(self, profile: Profile) -> Follower:
         return self._session.query(Follower) \
             .filter(Follower.username == profile.username) \
             .one_or_none()
@@ -70,7 +70,6 @@ class Persistence():
     def create_or_update_media(self, post: Post):
         media = self.get_media(post)
         if media is not None:
-            media.updated = datetime.now()
             media.comments = post.comments()
         else:
             media = Media(
@@ -80,11 +79,19 @@ class Persistence():
             self._session.add(media)
         self._session.commit()
 
-    def get_media(self, post: Post):
+    def get_media(self, post: Post) -> Media:
         return self._session.query(Media) \
             .filter(Media.shortcode == post.shortcode).first()
 
-    def get_resent_followees(self, seconds: int = 86400):
+    def get_resent_likes(self, seconds: int = 3600) -> [Follower]:
+        now_time = datetime.now()
+        cut_off_time = now_time - timedelta(seconds=seconds)
+        return self._session.query(Follower) \
+            .filter(Follower.last_liked > cut_off_time) \
+            .order_by(desc(Follower.last_liked)) \
+            .all()
+
+    def get_resent_followees(self, seconds: int = 3600) -> [Follower]:
         now_time = datetime.now()
         cut_off_time = now_time - timedelta(seconds=seconds)
         return self._session.query(Follower) \
@@ -92,11 +99,28 @@ class Persistence():
             .order_by(desc(Follower.last_followed)) \
             .all()
 
-    def get_candidate_to_follow(self):
+    def get_resent_unfollowees(self, seconds: int = 3600) -> [Follower]:
+        now_time = datetime.now()
+        cut_off_time = now_time - timedelta(seconds=seconds)
+        return self._session.query(Follower) \
+            .filter(Follower.last_unfollowed > cut_off_time) \
+            .all()
+
+    def get_candidate_to_like(self) -> Follower:
+        return self._session.query(Follower) \
+            .filter(Follower.last_liked == None) \
+            .filter(Follower.followed_back == None) \
+            .filter(Follower.filtered == None) \
+            .filter(Follower.is_private.is_(False)) \
+            .order_by(func.random()) \
+            .first()
+            
+    def get_candidate_to_follow(self) -> Follower:
         return self._session.query(Follower) \
             .filter(Follower.last_followed == None) \
             .filter(Follower.followed_back == None) \
             .filter(Follower.filtered == None) \
+            .filter(Follower.is_private.is_(True)) \
             .order_by(func.random()) \
             .first()
 
@@ -104,14 +128,4 @@ class Persistence():
         for k, v in kwargs.items():
             setattr(b, k, v) if hasattr(b, k) \
                 else print(f"Instance {b} has no attribute {k}")
-        self._session.commit()
-
-    def update_last_followed(self, username: str):
-        follower = self._session.query(Follower).filter(Follower.username == username).first()
-        follower.last_followed = datetime.now()
-        self._session.commit()
-
-    def update_comment(self, username, comment):
-        follower = self._session.query(Follower).filter(Follower.username == username).first()
-        follower.comment = comment
         self._session.commit()
