@@ -32,8 +32,10 @@ def _reports(func: Callable) -> Callable:
 
 def collect():
     usernames = [
-        # 'doctor_zubareva',
         'anikoyoga',
+        'chudo.yoga',
+        'evgeshayoga',
+        'rimma_pryadchenko',
     ]
 
     instaloader = Instaloader()
