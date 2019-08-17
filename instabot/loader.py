@@ -76,12 +76,12 @@ AUDIENCE_FILTER = [
 ]
 
 def _filtered(self) -> str:
+    if self.followers == 0:
+        return 'fake'
     if self.followees == 0 or self.followers / self.followees > 2 and self.followers > 1000:
         return 'selebgram'
     if self.followees > 1000:
         return 'massfollower'
-    if self.followers == 0:
-        return 'fake'
     if any(ext in self.biography for ext in SCAM_FILTER):
         return 'fraud'
     if any(ext in self.biography for ext in AUDIENCE_FILTER):

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from datetime import datetime, timedelta
+from typing import Any, Dict
 
 from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy import create_engine, desc
@@ -22,18 +23,19 @@ class Follower(Base):
     media = Column(Integer, default=0)
     is_private = Column(Integer, default=0)
     filtered = Column(String)
+    last_liked = Column(DateTime)
     last_followed = Column(DateTime)
     last_unfollowed = Column(DateTime)
     followed_back = Column(DateTime)
-    created = Column(DateTime, default=datetime.now())
-    updated = Column(DateTime, default=datetime.now())
+    created = Column(DateTime, default=datetime.now)
+    updated = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
 class Media(Base):
     __tablename__ = 'medias'
     shortcode = Column(String, primary_key=True)
     comments = Column(Integer)
-    created = Column(DateTime, default=datetime.now())
-    updated = Column(DateTime, default=datetime.now())
+    created = Column(DateTime, default=datetime.now)
+    updated = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
 class Persistence():
 
@@ -56,8 +58,6 @@ class Persistence():
             media=profile.mediacount,
             is_private=profile.is_private,
             filtered=profile.filtered,
-            created=datetime.now(), 
-            updated=datetime.now()
             )
         self._session.add(follower)
         self._session.commit()
@@ -76,8 +76,6 @@ class Persistence():
             media = Media(
                 shortcode=post.shortcode, 
                 comments=post.comments,
-                created=datetime.now(),
-                updated=datetime.now()
                 )
             self._session.add(media)
         self._session.commit()
@@ -101,6 +99,12 @@ class Persistence():
             .filter(Follower.filtered == None) \
             .order_by(func.random()) \
             .first()
+
+    def update(self, b: Base, **kwargs):
+        for k, v in kwargs.items():
+            setattr(b, k, v) if hasattr(b, k) \
+                else print(f"Instance {b} has no attribute {k}")
+        self._session.commit()
 
     def update_last_followed(self, username: str):
         follower = self._session.query(Follower).filter(Follower.username == username).first()
