@@ -14,9 +14,9 @@ from typing import Callable
 
 from instaloader import Profile, ProfileNotExistsException
 
-from persistence import Follower, Persistence
-from loader import Instaloader
-from config import config
+from .persistence import Follower, Persistence
+from .instaloader import Instaloader
+from .config import config
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
@@ -155,9 +155,10 @@ def test(*args, **kwargs):
     profile = instaloader.get_profile(candidate.username)
     db.update(candidate, some='value', oter=123, filtered='ololo it works!')
 
-if __name__ == '__main__':
+def main():
+    locls = {k: v for k, v in globals().items() if type(v).__name__ == 'function'}
     if len(sys.argv) > 1:
-        func = locals()[sys.argv[1]] if sys.argv[1] in locals() else sys.argv[1]
+        func = locls[sys.argv[1]] if sys.argv[1] in locls else sys.argv[1]
         if callable(func):
             print('Invoking {}()'.format(func.__name__))
             func(*sys.argv[2:])
