@@ -1,4 +1,29 @@
 ---
 login: "login"
 password: "password"
-
+logging:
+  version: 1
+  formatters:
+    simple:
+      format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    user:
+      format: "%(login)s - %(asctime)s - %(levelname)s - %(message)s"
+  handlers:
+    telegram:
+      level: INFO
+      class: telegram_handler.TelegramHandler
+      token: TELEGRAM_BOT_TOKEN
+      chat_id: TELEGRAM_CHAT_ID
+      proxies:
+        http: HTTP_PROXY_URL
+        https: HTTPS_PROXY_URL
+    console:
+      class: logging.StreamHandler
+      level: INFO
+      formatter: simple
+      stream: "ext://sys.stdout"
+  loggers:
+    instabot:
+      handlers:
+        - telegram
+        - console

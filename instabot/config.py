@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import logging.config
+import os, sys
 
+# sys.path.append(os.path.abspath('../python-telegram-handler'))
+
+import logging.config
+import telegram_handler
 from config42 import ConfigManager
 
 # logging.basicConfig(level=logging.DEBUG)
-LOGGER = logging.getLogger(__name__)
 
-config = ConfigManager(path='./config.yml')
+config = ConfigManager(path='./config.yml', prefix=__package__)
+
+logging.config.dictConfig(config.get("logging"))

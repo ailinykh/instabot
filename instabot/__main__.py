@@ -19,7 +19,7 @@ from .instaloader import Instaloader
 from .config import config
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger()
+logger = logging.getLogger(__package__)
 
 def _reports(func: Callable) -> Callable:
     """Decorator to report message about job results"""
@@ -79,19 +79,19 @@ def job(): # workflow
         try:
             profile = instaloader.get_profile(candidate.username)
         except ProfileNotExistsException:
-            logger.info(f'Profile {candidate.username} not found.')
+            logger.warning(f'Profile {candidate.username} not found.')
             db.update(candidate, filtered='user not found')
             return None
 
         # check already follower
         if profile.follows_viewer:
-            logger.info(f'{profile.username} already a follower')
+            logger.warning(f'{profile.username} already a follower')
             db.update(candidate, filtered='already follower')
             return None
 
         # check already followed
         if profile.followed_by_viewer:
-            logger.info(f'{profile.username} already followed')
+            logger.warning(f'{profile.username} already followed')
             db.update(candidate, filtered='already followed')
             return None
         

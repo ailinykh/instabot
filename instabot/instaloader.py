@@ -123,8 +123,8 @@ class Instaloader:
     url_user_detail = "https://www.instagram.com/%s/"
 
     def __init__(self, **kwargs):
-        self.logger = logging.getLogger(self.__class__.__name__)
-
+        self.logger = logging.getLogger(__package__)
+        
         self.s = requests.Session()
         self.c = InstaloaderContext()
 

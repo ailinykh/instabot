@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "f121769d6e25c8dbc204ec2328db4cd23393106ed03904b3832624b746c795d3"
+            "sha256": "14797c87e51383ed3538d38fc97665eed1c0787a3357e3a946627ef82a59513c"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -52,10 +52,10 @@
         },
         "instaloader": {
             "hashes": [
-                "sha256:ccf7a90256f49702782183e60ba4adad5471b9b66ccb814cd44a7175750c3768"
+                "sha256:227ea9f89de16cfc6a757f38ebf456f2612a6c1e0d4d1b44bc915186435b15f1"
             ],
             "index": "pypi",
-            "version": "==4.2.8"
+            "version": "==4.2.9"
         },
         "jinja2": {
             "hashes": [
@@ -97,6 +97,14 @@
             ],
             "version": "==1.1.1"
         },
+        "pysocks": {
+            "hashes": [
+                "sha256:15d38914b60dbcb231d276f64882a20435c049450160e953ca7d313d1405f16f",
+                "sha256:32238918ac0f19e9fd870a8692ac9bd14f5e8752b3c62624cda5851424642210",
+                "sha256:d9031ea45fdfacbe59a99273e9f0448ddb33c1580fe3831c1b09557c5718977c"
+            ],
+            "version": "==1.7.0"
+        },
         "pyyaml": {
             "hashes": [
                 "sha256:0113bc0ec2ad727182326b61326afa3d1d8280ae1122493553fd6f4397f33df9",
@@ -116,10 +124,14 @@
             "version": "==5.1.2"
         },
         "requests": {
+            "extras": [
+                "socks"
+            ],
             "hashes": [
                 "sha256:11e007a8a2aa0323f5a921e9e6a2d7e4e67d9877e85773fba9ba6419025cbeb4",
                 "sha256:9cf5292fcd0f598c671cfc1e0d7d1a7f13bb8085e9a590f48c010551dc6c4b31"
             ],
+            "index": "pypi",
             "version": "==2.22.0"
         },
         "sqlalchemy": {
