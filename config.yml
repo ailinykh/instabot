@@ -1,0 +1,35 @@
+---
+login: "iporfiry"
+password: "adolph1488"
+profiles:
+  - anikoyoga
+  - chudo.yoga
+  - evgeshayoga
+  - rimma_pryadchenko
+logging:
+  version: 1
+  formatters:
+    simple:
+      format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    telegram:
+      format: "%(name)s - %(asctime)s - %(levelname)s - %(message)s"
+  handlers:
+    telegram:
+      class: telegram_handler.TelegramHandler
+      level: INFO
+      formatter: telegram
+      token: 676603434:AAGR9hiGZDbQ7pkea6Uhk1-RjZQzbXvS2IQ
+      chat_id: 354104
+      # proxies:
+      #   http: socks5://petushok:kokoko@socks.smekalo4ka.ru:1080
+      #   https: socks5://petushok:kokoko@socks.smekalo4ka.ru:1080
+    console:
+      class: logging.StreamHandler
+      level: INFO
+      formatter: simple
+      stream: "ext://sys.stdout"
+  loggers:
+    instabot:
+      handlers:
+        - telegram
+        - console
