@@ -113,45 +113,45 @@ class Instaloader:
 
     """
 
-    url = "https://www.instagram.com/"
-    url_like = "https://www.instagram.com/web/likes/%s/like/"
-    url_unlike = "https://www.instagram.com/web/likes/%s/unlike/"
-    url_comment = "https://www.instagram.com/web/comments/%s/add/"
-    url_follow = "https://www.instagram.com/web/friendships/%s/follow/"
-    url_unfollow = "https://www.instagram.com/web/friendships/%s/unfollow/"
-    url_media = "https://www.instagram.com/p/%s/"
-    url_user_detail = "https://www.instagram.com/%s/"
+    url = 'https://www.instagram.com/'
+    url_like = 'https://www.instagram.com/web/likes/%s/like/'
+    url_unlike = 'https://www.instagram.com/web/likes/%s/unlike/'
+    url_comment = 'https://www.instagram.com/web/comments/%s/add/'
+    url_follow = 'https://www.instagram.com/web/friendships/%s/follow/'
+    url_unfollow = 'https://www.instagram.com/web/friendships/%s/unfollow/'
+    url_media = 'https://www.instagram.com/p/%s/'
+    url_user_detail = 'https://www.instagram.com/%s/'
 
     def __init__(self, **kwargs):
-        self.logger = logging.getLogger(__package__)
+        self.l = logging.getLogger(__package__)
         
         self.s = requests.Session()
         self.c = InstaloaderContext()
 
         now_time = datetime.datetime.now()
-        log_string = "Instaloader v0.0.1 started at %s:" % (
-            now_time.strftime("%d.%m.%Y %H:%M")
+        log_string = 'Instaloader v0.0.1 started at %s:' % (
+            now_time.strftime('%d.%m.%Y %H:%M')
         )
-        self.logger.info(log_string)
+        self.l.info(log_string)
 
     def login(self, username, password):
         filename = 'session-' + username.lower()
         try:
             with open(filename, 'rb') as sessionfile:
                 self.c.load_session_from_file(username, sessionfile)
-                self.c.log("Loaded session from %s." % filename)
+                self.l.info(f'Loaded session from {filename}.')
         except FileNotFoundError as err:
-            self.c.log("Session file does not exist yet - Logging in.")
+            self.l.warning('Session file does not exist yet - Logging in.')
         if not self.c.is_logged_in or username != self.c.test_login():
             try:
                 self.c.login(username, password)
             except TwoFactorAuthRequiredException:
-                self.c.log("2FA required!")
+                self.l.warning('2FA required!')
             with open(filename, 'wb') as sessionfile:
                 os.chmod(filename, 0o600)
                 self.c.save_session_to_file(sessionfile)
-                self.c.log("Saved session to %s." % filename)
-        self.c.log("Logged in as %s." % username)
+                self.l.info(f'Saved session to {filename}.')
+        self.l.info(f'Logged in as {username}.')
         
     def get_profile(self, username:str) -> Profile:
         return Profile.from_username(self.c, username)
@@ -160,8 +160,8 @@ class Instaloader:
         return Post.from_shortcode(self.c, shortcode)
 
     def get_last_user_posts(self, username: str, count: int = 10) -> [Post]:
-        self.logger.debug(f"Getting last posts for {username}")
-        profile = Profile(self.c, {"username": username})
+        self.l.debug(f'Getting last posts for {username}')
+        profile = Profile(self.c, {'username': username})
         return [x for _, x in zip(range(count), profile.get_posts())]
 
     @_requires_login

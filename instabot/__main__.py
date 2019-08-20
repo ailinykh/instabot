@@ -31,12 +31,7 @@ def _reports(func: Callable) -> Callable:
     return call
 
 def collect():
-    usernames = [
-        'anikoyoga',
-        'chudo.yoga',
-        'evgeshayoga',
-        'rimma_pryadchenko',
-    ]
+    usernames = config.get('profiles')
 
     instaloader = Instaloader()
     db = Persistence('sqlite:///db.sqlite3')
@@ -148,12 +143,13 @@ def print_session(filename: str):
 
 @_reports
 def test(*args, **kwargs):
-    instaloader = Instaloader()
-    db = Persistence('sqlite:///db.sqlite3')
-    candidate = db.get_candidate_to_follow()
+    # instaloader = Instaloader()
+    # db = Persistence('sqlite:///db.sqlite3')
+    # candidate = db.get_candidate_to_follow()
 
-    profile = instaloader.get_profile(candidate.username)
-    db.update(candidate, some='value', oter=123, filtered='ololo it works!')
+    # profile = instaloader.get_profile(candidate.username)
+    # db.update(candidate, some='value', oter=123, filtered='ololo it works!')
+    logger.info('It works!')
 
 def main():
     locls = {k: v for k, v in globals().items() if type(v).__name__ == 'function'}
