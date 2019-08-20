@@ -11,6 +11,7 @@ instaloader = "*"
 sqlalchemy = "*"
 config42 = "*"
 requests = {extras = ["socks"],version = "*"}
+python-telegram-handler = "*"
 
 [requires]
 python_version = "3.7"

@@ -1,6 +1,10 @@
 ---
 login: "login"
 password: "password"
+profiles:
+  - cristiano
+  - selenagomez
+  - madonna
 logging:
   version: 1
   formatters:
