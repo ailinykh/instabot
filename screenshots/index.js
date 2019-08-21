@@ -28,10 +28,14 @@ const create_snapshot = async (u, filename) => {
   
   console.info(new Date().toLocaleTimeString(), u)
   
-  const status = await page.open(`https://instagram.com/${u.username}/`)
+  const status = await page.open(`https://www.instagram.com/${u.username}/`)
   if (status !== 'success') {
     console.warn(status, u.username)
-    page = await instance.createPage() // recreate page on fail https://stackoverflow.com/questions/32430426/
+    // recreate on fail https://stackoverflow.com/questions/32430426/
+    instance = await phantom.create()
+    page = await instance.createPage()
+    await new Promise(success => { setTimeout(()=>{ success() }, 5000) }) // timeout
+    return
   }
 
   await new Promise(success => {
@@ -58,7 +62,7 @@ var page
 
 (async function() {
   const db = await sqlite.open('../db.sqlite3');
-  const data = await db.all('SELECT username, filtered FROM followers ORDER BY RANDOM() LIMIT 500')
+  const data = await db.all('SELECT username, filtered FROM followers ORDER BY RANDOM() LIMIT 5000')
   await db.close()
 
   instance = await phantom.create()
