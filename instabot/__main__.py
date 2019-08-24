@@ -18,7 +18,6 @@ from .persistence import Follower, Persistence
 from .instaloader import Instaloader
 from .config import config
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__package__)
 
 def _reports(func: Callable) -> Callable:
@@ -150,6 +149,7 @@ def test(*args, **kwargs):
     # profile = instaloader.get_profile(candidate.username)
     # db.update(candidate, some='value', oter=123, filtered='ololo it works!')
     logger.info('It works!')
+    logger.warning('Warning!')
 
 def main():
     locls = {k: v for k, v in globals().items() if type(v).__name__ == 'function'}

@@ -9,8 +9,6 @@ import logging.config
 import telegram_handler
 from config42 import ConfigManager
 
-# logging.basicConfig(level=logging.DEBUG)
-
 config = ConfigManager(path='./config.yml', prefix=__package__)
 
 logging.config.dictConfig(config.get("logging"))
