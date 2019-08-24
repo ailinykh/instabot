@@ -16,20 +16,20 @@ logging:
   handlers:
     telegram:
       class: telegram_handler.TelegramHandler
-      level: INFO
+      level: WARNING
       formatter: telegram
       token: 676603434:AAGR9hiGZDbQ7pkea6Uhk1-RjZQzbXvS2IQ
       chat_id: 354104
-      # proxies:
-      #   http: socks5://petushok:kokoko@socks.smekalo4ka.ru:1080
-      #   https: socks5://petushok:kokoko@socks.smekalo4ka.ru:1080
+      proxies:
+        http: socks5://petushok:kokoko@socks.smekalo4ka.ru:1080
+        https: socks5://petushok:kokoko@socks.smekalo4ka.ru:1080
     console:
       class: logging.StreamHandler
-      level: INFO
       formatter: simple
-      stream: "ext://sys.stdout"
+      stream: "ext://sys.stderr"
   loggers:
     instabot:
+      level: INFO
       handlers:
         - telegram
         - console
