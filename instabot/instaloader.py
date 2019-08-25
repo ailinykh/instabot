@@ -7,7 +7,6 @@ from typing import Any, Callable, Dict, Iterator, List, Optional, Set, Union
 
 from instaloader import InstaloaderContext, Post, Profile, TwoFactorAuthRequiredException
 
-import datetime
 import logging
 import os
 import re
@@ -127,12 +126,6 @@ class Instaloader:
         
         self.s = requests.Session()
         self.c = InstaloaderContext()
-
-        now_time = datetime.datetime.now()
-        log_string = 'Instaloader v0.0.1 started at %s:' % (
-            now_time.strftime('%d.%m.%Y %H:%M')
-        )
-        self.l.info(log_string)
 
     def login(self, username, password):
         filename = 'session-' + username.lower()
