@@ -12,3 +12,5 @@ from config42 import ConfigManager
 config = ConfigManager(path='./config.yml', prefix=__package__)
 
 logging.config.dictConfig(config.get("logging"))
+
+logger = logging.getLogger(__package__)

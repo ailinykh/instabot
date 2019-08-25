@@ -14,20 +14,10 @@ from typing import Callable
 
 from instaloader import Profile, ProfileNotExistsException
 
+from .__init__ import __version__
 from .persistence import Follower, Persistence
 from .instaloader import Instaloader
-from .config import config
-
-logger = logging.getLogger(__package__)
-
-def _reports(func: Callable) -> Callable:
-    """Decorator to report message about job results"""
-    @wraps(func)
-    def call(*args, **kwargs):
-        print("before")
-        func(*args, **kwargs)
-        print("after")
-    return call
+from .config import config, logger
 
 def collect():
     usernames = config.get('profiles')
@@ -37,8 +27,6 @@ def collect():
 
     for username in usernames:
         logger.info('Processing username {}'.format(username))
-        # profile = instaloader.get_profile(username)
-        # print(profile.filtered)
         
         for post in instaloader.get_last_user_posts(username):
             logger.info('Post {} has {} comments'.format(post.shortcode, post.comments))    
@@ -109,7 +97,7 @@ def job(): # workflow
                     logger.info(f'Successfully liked post {post.shortcode} by {profile.username}')
                     db.update(candidate, last_liked=datetime.now())
                 else:
-                    logger.info(f'Bad status {j}')
+                    logger.warning(f'Bad status {j}')
                 break
 
     if follows_available > 0:
@@ -122,7 +110,7 @@ def job(): # workflow
                 logger.info(f'Successfully followed {profile.username}')
                 db.update(candidate, last_followed=datetime.now())
             else:
-                logger.info(f'Bad status {j}')
+                logger.warning(f'Bad status {j}')
 
         #TODO check who follows back
 
@@ -140,7 +128,6 @@ def print_session(filename: str):
     with open(filename, 'rb') as sessionfile:
         print(json.dumps(pickle.load(sessionfile)))
 
-@_reports
 def test(*args, **kwargs):
     # instaloader = Instaloader()
     # db = Persistence('sqlite:///db.sqlite3')
@@ -152,11 +139,17 @@ def test(*args, **kwargs):
     logger.warning('Warning!')
 
 def main():
+    now_time = datetime.now()
+    log_string = 'Instabot v%s started at %s:' % (
+        __version__, now_time.strftime('%d.%m.%Y %H:%M')
+    )
+    logger.info(log_string)
+
     locls = {k: v for k, v in globals().items() if type(v).__name__ == 'function'}
     if len(sys.argv) > 1:
         func = locls[sys.argv[1]] if sys.argv[1] in locls else sys.argv[1]
         if callable(func):
-            print('Invoking {}()'.format(func.__name__))
+            logger.info('Invoking {}()'.format(func.__name__))
             func(*sys.argv[2:])
         else:
-            print('{} is not callable'.format(func))
+            logger.warning('{} is not callable'.format(func))
