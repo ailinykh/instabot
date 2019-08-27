@@ -33,7 +33,7 @@ schema = [
         required=False
     ), dict(
         name="SQLite3 database path",
-        key="database.path",
+        key="database",
         source=dict(argv=["--sqlite-path"]),
         description="Contains the SQLite database path",
         required=False
