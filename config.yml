@@ -1,6 +1,7 @@
 ---
-login: "iporfiry"
-password: "adolph1488"
+login: iporfiry
+password: adolph1488
+database: sqlite:///db.sqlite3
 profiles:
   - anikoyoga
   - chudo.yoga
@@ -26,7 +27,7 @@ logging:
     console:
       class: logging.StreamHandler
       formatter: simple
-      stream: "ext://sys.stderr"
+      stream: ext://sys.stderr
   loggers:
     instabot:
       level: INFO
