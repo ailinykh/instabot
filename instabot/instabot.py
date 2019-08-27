@@ -25,7 +25,7 @@ class Instabot:
         self.config = config
 
         now_time = datetime.now()
-        log_string = 'Instabot v%s started at %s:' % (
+        log_string = 'Instabot v%s started at %s' % (
             __version__, now_time.strftime('%d.%m.%Y %H:%M')
         )
         self.logger.info(log_string)
@@ -139,7 +139,7 @@ class Instabot:
         with open(filename, 'rb') as sessionfile:
             print(json.dumps(pickle.load(sessionfile)))
 
-    def test(*args, **kwargs):
+    def test(self, **kwargs):
         # instaloader = Instaloader()
         # db = Persistence('sqlite:///db.sqlite3')
         # candidate = db.get_candidate_to_follow()

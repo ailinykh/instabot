@@ -13,12 +13,6 @@ from .instabot import Instabot
 
 schema = [
     dict(
-        name="action",
-        key="",
-        description="Bot action",
-        required=True
-    ),
-    dict(
         name="login",
         key="login",
         source=dict(argv=["--login"]),
@@ -52,29 +46,26 @@ schema = [
     )
 ]
 
-defaults = {'config42': OrderedDict(
-    [
-        ('argv', dict(handler=ArgParse, schema=schema)),
-        ('env', {'prefix': 'INSTABOT'}),
-        ('file', {'path': 'config.yml'}),
-    ]
-)}
-
 def main():
+    parser = ArgumentParser(description='Instabot', add_help=False)
+    choices = [func for func in dir(Instabot) if callable(getattr(Instabot, func)) and not func.startswith('_')]
+    parser.add_argument('action', metavar='|'.join(choices), choices=choices)
+
+    defaults = {'config42': OrderedDict(
+        [
+            ('argv', dict(handler=ArgParse, schema=schema, parents=[parser])),
+            ('env', {'prefix': 'INSTABOT'}),
+            ('file', {'path': 'config.yml'}),
+        ]
+    )}
+
     config = ConfigManager(schema=schema, defaults=defaults)
     config_file = config.get('config.file')
     _config = ConfigManager(schema=schema, path=config_file)
     config.set_many(_config.as_dict())
     config.commit()
 
-    parser = ArgumentParser(description='Instabot')
+    logging.config.dictConfig(config.get("logging"))
 
-    choices = [func for func in dir(Instabot) if callable(getattr(Instabot, func)) and not func.startswith('_')]
-    parser.add_argument('action', metavar='|'.join(choices), choices=choices)
-
-    args = parser.parse_args()
-
-    print(args, config)
     instabot = Instabot(config)
-
-    getattr(instabot, args.action)()
+    getattr(instabot, config.get('action'))()
