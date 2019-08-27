@@ -5,12 +5,9 @@ import json
 import logging
 import os
 import pickle
-import random
 import sys
 
 from datetime import datetime
-from functools import wraps
-from typing import Callable
 
 from instaloader import Profile, ProfileNotExistsException
 
