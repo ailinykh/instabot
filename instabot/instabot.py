@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import json
+import logging
 import os
 import pickle
 import random
@@ -16,33 +17,35 @@ from instaloader import Profile, ProfileNotExistsException
 from .__init__ import __version__
 from .persistence import Follower, Persistence
 from .instaloader import Instaloader
-from .config import config, logger
 
 class Instabot:
     
-    def __init__(self, **kwargs):
+    def __init__(self, config=None, **kwargs):
+        self.logger = logging.getLogger(__package__)
+        self.config = config
+
         now_time = datetime.now()
         log_string = 'Instabot v%s started at %s:' % (
             __version__, now_time.strftime('%d.%m.%Y %H:%M')
         )
-        logger.info(log_string)
+        self.logger.info(log_string)
 
     def collect(self):
-        usernames = config.get('profiles')
+        usernames = self.config.get('profiles')
 
         instaloader = Instaloader()
         db = Persistence('sqlite:///db.sqlite3')
 
         for username in usernames:
-            logger.info('Processing username {}'.format(username))
+            self.logger.info('Processing username {}'.format(username))
             
             for post in instaloader.get_last_user_posts(username):
-                logger.info('Post {} has {} comments'.format(post.shortcode, post.comments))    
+                self.logger.info('Post {} has {} comments'.format(post.shortcode, post.comments))    
                 
                 media = db.get_media(post)
 
                 if not media or media.comments * 1.5 < post.comments:
-                    logger.info('Processing comments from {}'.format(post.shortcode))
+                    self.logger.info('Processing comments from {}'.format(post.shortcode))
                     
                     for comment in post.get_comments():
                         db.create_follower(comment.owner)
@@ -53,15 +56,15 @@ class Instabot:
                     db.create_or_update_media(post)
                     # return
                 else:
-                    logger.info('Skipping post {}'.format(post.shortcode))
+                    self.logger.info('Skipping post {}'.format(post.shortcode))
         #     n = 0
         #     break  
 
     def job(self): # workflow
         instaloader = Instaloader()
         instaloader.login(
-            config.get('login'),
-            config.get('password')
+            self.config.get('login'),
+            self.config.get('password')
             )
         db = Persistence('sqlite:///db.sqlite3')
         
@@ -69,19 +72,19 @@ class Instabot:
             try:
                 profile = instaloader.get_profile(candidate.username)
             except ProfileNotExistsException:
-                logger.warning(f'Profile {candidate.username} not found.')
+                self.logger.warning(f'Profile {candidate.username} not found.')
                 db.update(candidate, filtered='user not found')
                 return None
 
             # check already follower
             if profile.follows_viewer:
-                logger.warning(f'{profile.username} already a follower')
+                self.logger.warning(f'{profile.username} already a follower')
                 db.update(candidate, filtered='already follower')
                 return None
 
             # check already followed
             if profile.followed_by_viewer:
-                logger.warning(f'{profile.username} already followed')
+                self.logger.warning(f'{profile.username} already followed')
                 db.update(candidate, filtered='already followed')
                 return None
             
@@ -92,7 +95,7 @@ class Instabot:
         likes_available = 60 - len(db.get_resent_likes())
         follows_available = 60 - (len(db.get_resent_followees()) + len(db.get_resent_unfollowees()))
 
-        logger.info(f'Available: likes {likes_available}, follows {follows_available}')
+        self.logger.info(f'Available: likes {likes_available}, follows {follows_available}')
 
         if likes_available > 0:
             candidate = db.get_candidate_to_like()
@@ -102,10 +105,10 @@ class Instabot:
                 for post in profile.get_posts():
                     j, ok = instaloader.like_post(post)
                     if ok:
-                        logger.info(f'Successfully liked post {post.shortcode} by {profile.username}')
+                        self.logger.info(f'Successfully liked post {post.shortcode} by {profile.username}')
                         db.update(candidate, last_liked=datetime.now())
                     else:
-                        logger.warning(f'Bad status {j}')
+                        self.logger.warning(f'Bad status {j}')
                     break
 
         if follows_available > 0:
@@ -115,10 +118,10 @@ class Instabot:
             if profile is not None:
                 j, ok = instaloader.follow_user(profile)
                 if ok:
-                    logger.info(f'Successfully followed {profile.username}')
+                    self.logger.info(f'Successfully followed {profile.username}')
                     db.update(candidate, last_followed=datetime.now())
                 else:
-                    logger.warning(f'Bad status {j}')
+                    self.logger.warning(f'Bad status {j}')
 
             #TODO check who follows back
 
@@ -143,5 +146,5 @@ class Instabot:
 
         # profile = instaloader.get_profile(candidate.username)
         # db.update(candidate, some='value', oter=123, filtered='ololo it works!')
-        logger.info('It works!')
-        logger.warning('Warning!')
+        self.logger.info('It works!')
+        self.logger.warning('Warning!')
