@@ -1,6 +1,7 @@
 ---
-login: "login"
-password: "password"
+login: login
+password: password
+database: sqlite:///db.sqlite3
 profiles:
   - cristiano
   - selenagomez
