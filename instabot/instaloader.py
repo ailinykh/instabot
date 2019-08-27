@@ -122,7 +122,7 @@ class Instaloader:
     url_user_detail = 'https://www.instagram.com/%s/'
 
     def __init__(self, **kwargs):
-        self.l = logging.getLogger(__package__)
+        self.logger = logging.getLogger(__package__)
         
         self.s = requests.Session()
         self.c = InstaloaderContext()
@@ -132,19 +132,20 @@ class Instaloader:
         try:
             with open(filename, 'rb') as sessionfile:
                 self.c.load_session_from_file(username, sessionfile)
-                self.l.info(f'Loaded session from {filename}.')
+                self.logger.info(f'Loaded session from {filename}.')
         except FileNotFoundError as err:
-            self.l.warning('Session file does not exist yet - Logging in.')
+            self.logger.debug(err)
+            self.logger.warning('Session file does not exist yet - Logging in.')
         if not self.c.is_logged_in or username != self.c.test_login():
             try:
                 self.c.login(username, password)
             except TwoFactorAuthRequiredException:
-                self.l.warning('2FA required!')
+                self.logger.warning('2FA required!')
             with open(filename, 'wb') as sessionfile:
                 os.chmod(filename, 0o600)
                 self.c.save_session_to_file(sessionfile)
-                self.l.info(f'Saved session to {filename}.')
-        self.l.info(f'Logged in as {username}.')
+                self.logger.info(f'Saved session to {filename}.')
+        self.logger.info(f'Logged in as {username}.')
         
     def get_profile(self, username:str) -> Profile:
         return Profile.from_username(self.c, username)
@@ -153,7 +154,7 @@ class Instaloader:
         return Post.from_shortcode(self.c, shortcode)
 
     def get_last_user_posts(self, username: str, count: int = 10) -> [Post]:
-        self.l.debug(f'Getting last posts for {username}')
+        self.logger.debug(f'Getting last posts for {username}')
         profile = Profile(self.c, {'username': username})
         return [x for _, x in zip(range(count), profile.get_posts())]
 

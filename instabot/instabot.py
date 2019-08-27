@@ -22,16 +22,19 @@ class Instabot:
         self.config = config
 
         self.instaloader = Instaloader()
+        self.logger.debug(f"Using database {self.config.get('database')}")
         self.db = Persistence(self.config.get('database'))
 
         now_time = datetime.now()
-        log_string = 'Instabot v%s started at %s' % (
-            __version__, now_time.strftime('%d.%m.%Y %H:%M')
-        )
+        log_string = f"Instabot v{__version__} started at {now_time.strftime('%d.%m.%Y %H:%M')}"
         self.logger.info(log_string)
 
     def collect(self):
         usernames = self.config.get('profiles')
+
+        if not usernames:
+            self.logger.error('profiles are empty')
+            return
 
         for username in usernames:
             self.logger.info('Processing username {}'.format(username))
