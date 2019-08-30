@@ -30,12 +30,12 @@ def mock_request_get(monkeypatch):
             _, _, _, scope, shortcode = url.split('/')
         
         if scope == 'p':
-            filename = f'post_{shortcode}.json'
+            filename = f'p_{shortcode}.json'
         elif scope == 'graphql':
             d = json.loads(kwargs["params"]["variables"])
-            filename = f'graphql_{d["shortcode"]}.json'
+            filename = f'g_{d["shortcode"]}.json'
         else:
-            filename = f'username_{scope}.json'
+            filename = f'u_{scope}.json'
 
         path = os.path.join(os.path.dirname(__file__), '__mocks__', filename)
 
@@ -46,7 +46,7 @@ def mock_request_get(monkeypatch):
             else:
                 match = re.search(r'window\._sharedData = (.*);</script>', resp.text)
                 if match is None:
-                    raise ConnectionException("Could not find \"window._sharedData\" in html response.")
+                    raise Exception("Could not find \"window._sharedData\" in html response.")
                 jsn = json.loads(match.group(1))
             open(path, 'w').write(json.dumps(jsn, indent=2))
         
