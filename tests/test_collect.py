@@ -1,6 +1,7 @@
 import json
 import os
 import pytest
+import re
 import requests
 
 from config42 import ConfigManager
@@ -23,25 +24,42 @@ def no_requests(monkeypatch):
 @pytest.fixture
 def mock_request_get(monkeypatch):
     def mock_get(session, url, **kwargs):
-        parts = url.split('/')
-        print(parts, url, kwargs)
-        if parts[3] == 'p':
-            filename = f'post_{parts[4]}.html'
-        elif parts[3] == 'graphql':
-            d = json.loads(kwargs["params"]["variables"])
-            filename = f'graphql_{d["shortcode"]}.html'
-        else:
-            filename = f'username_{parts[3]}.html'
-        path = os.path.join(os.path.dirname(__file__), 'data', filename)
         try:
-            html = open(path, 'rb').read()
-            resp = requests.Response()
-            resp.status_code = 200
-            resp._content = html
-        except FileNotFoundError:
-            resp = _get(session, url, **kwargs)
-            open(path, 'w').write(resp.text)
+            _, _, _, scope, shortcode, _ = url.split('/')
+        except ValueError:
+            _, _, _, scope, shortcode = url.split('/')
         
+        if scope == 'p':
+            filename = f'post_{shortcode}.json'
+        elif scope == 'graphql':
+            d = json.loads(kwargs["params"]["variables"])
+            filename = f'graphql_{d["shortcode"]}.json'
+        else:
+            filename = f'username_{scope}.json'
+
+        path = os.path.join(os.path.dirname(__file__), '__mocks__', filename)
+
+        if not os.path.exists(path):
+            resp = _get(session, url, **kwargs)
+            if 'graphql' in url:
+                jsn = json.loads(resp.text)
+            else:
+                match = re.search(r'window\._sharedData = (.*);</script>', resp.text)
+                if match is None:
+                    raise ConnectionException("Could not find \"window._sharedData\" in html response.")
+                jsn = json.loads(match.group(1))
+            open(path, 'w').write(json.dumps(jsn, indent=2))
+        
+        jsn = json.load(open(path, 'r'))
+        resp = requests.Response()
+        resp.status_code = 200
+
+        text = json.dumps(jsn)
+        
+        if not 'graphql' in url:
+            text = f'<script type="text/javascript">window._sharedData = {text};</script>'
+        
+        resp._content = str.encode(text)
         return resp
 
     _get = requests.Session.get
@@ -50,7 +68,7 @@ def mock_request_get(monkeypatch):
 def test_collect(tmp_path, mock_request_get):
     defaults = {
         'database': f'sqlite:///{tmp_path}/test_db.sqlite3',
-        'profiles': []
+        'profiles': ['space']
     }
     config = ConfigManager(defaults=defaults)
     bot = Instabot(config)
