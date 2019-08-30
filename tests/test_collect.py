@@ -5,7 +5,7 @@ from instabot import Instabot
 def test_collect(tmp_path, mock_request_get):
     defaults = {
         'database': f'sqlite:///{tmp_path}/test_db.sqlite3',
-        'profiles': ['space']
+        'profiles': ['profile']
     }
     config = ConfigManager(defaults=defaults)
     bot = Instabot(config)

@@ -20,7 +20,7 @@ def mock_request_get(monkeypatch):
         else:
             filename = f'u_{scope}.json'
 
-        path = os.path.join(os.path.dirname(__file__), '__mocks__', filename)
+        path = os.path.join(os.path.dirname(__file__), 'fixtures', filename)
 
         if not os.path.exists(path):
             resp = _get(session, url, **kwargs)
