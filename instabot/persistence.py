@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from datetime import datetime, timedelta
-from typing import Any, Dict
 
 from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy import create_engine, desc
@@ -13,6 +12,7 @@ from sqlalchemy.sql import func
 from instaloader import Post, Profile
 
 Base = declarative_base()
+
 
 class Follower(Base):
     __tablename__ = 'followers'
@@ -30,12 +30,14 @@ class Follower(Base):
     created = Column(DateTime, default=datetime.now)
     updated = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
+
 class Media(Base):
     __tablename__ = 'medias'
     shortcode = Column(String, primary_key=True)
     comments = Column(Integer)
     created = Column(DateTime, default=datetime.now)
     updated = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+
 
 class Persistence():
 
@@ -45,7 +47,6 @@ class Persistence():
 
         self._Session = sessionmaker(bind=self._engine)
         self._session = self._Session()
-
 
     def create_follower(self, profile: Profile):
         if self.get_follower(profile) is not None:
@@ -73,7 +74,7 @@ class Persistence():
             media.comments = post.comments()
         else:
             media = Media(
-                shortcode=post.shortcode, 
+                shortcode=post.shortcode,
                 comments=post.comments,
                 )
             self._session.add(media)
@@ -108,18 +109,18 @@ class Persistence():
 
     def get_candidate_to_like(self) -> Follower:
         return self._session.query(Follower) \
-            .filter(Follower.last_liked == None) \
-            .filter(Follower.followed_back == None) \
-            .filter(Follower.filtered == None) \
+            .filter(Follower.last_liked is None) \
+            .filter(Follower.followed_back is None) \
+            .filter(Follower.filtered is None) \
             .filter(Follower.is_private.is_(False)) \
             .order_by(func.random()) \
             .first()
-            
+
     def get_candidate_to_follow(self) -> Follower:
         return self._session.query(Follower) \
-            .filter(Follower.last_followed == None) \
-            .filter(Follower.followed_back == None) \
-            .filter(Follower.filtered == None) \
+            .filter(Follower.last_followed is None) \
+            .filter(Follower.followed_back is None) \
+            .filter(Follower.filtered is None) \
             .filter(Follower.is_private.is_(True)) \
             .order_by(func.random()) \
             .first()

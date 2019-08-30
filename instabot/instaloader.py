@@ -3,15 +3,17 @@
 
 from __future__ import print_function
 from functools import wraps
-from typing import Any, Callable, Dict, Iterator, List, Optional, Set, Union
-
-from instaloader import InstaloaderContext, Post, Profile, TwoFactorAuthRequiredException
+from typing import Callable, Dict
 
 import logging
 import os
-import re
-
 import requests
+
+from instaloader import InstaloaderContext
+from instaloader import Post
+from instaloader import Profile
+from instaloader import LoginRequiredException, TwoFactorAuthRequiredException
+
 
 SCAM_FILTER = [
     'SMM',
@@ -19,23 +21,23 @@ SCAM_FILTER = [
     'выплат',
     'гарантия',
     'деньги',
-    'дeньги', # latin letters 
+    'дeньги',  # latin letters
     'оставка',
     'дeeньги',
     'доход',
     'заказ',
     'запись на',
     'зараб',
-    'зapaб', # latin letters
+    'зapaб',  # latin letters
     'зарбот',
     # 'зож', # regexp needed
     'инвестиции',
     'крипто',
     'коммерч',
     'личка переполнена',
-    'мнe пишeт', # latin letters
+    'мнe пишeт',  # latin letters
     'т акции',
-    'oпpoc', # latin letters
+    'oпpoc',  # latin letters
     'ОТВЕТ ТУТ',
     'получаю от',
     'предоплата',
@@ -75,10 +77,12 @@ AUDIENCE_FILTER = [
     'тренер',
 ]
 
+
 def _filtered(self) -> str:
     if self.followers == 0:
         return 'fake'
-    if self.followees == 0 or self.followers / self.followees > 2 and self.followers > 1000:
+    if self.followees == 0 or self.followers / self.followees > 2 \
+            and self.followers > 1000:
         return 'selebgram'
     if self.followees > 1000:
         return 'massfollower'
@@ -88,23 +92,29 @@ def _filtered(self) -> str:
         return 'non-target'
     return None
 
+
 Profile.filtered = property(_filtered)
+
 
 def copy_session(session: requests.Session) -> requests.Session:
     """Duplicates a requests.Session."""
     new = requests.Session()
-    new.cookies = requests.utils.cookiejar_from_dict(requests.utils.dict_from_cookiejar(session.cookies))
-    new.headers = session.headers.copy() # type: ignore
+    new.cookies = requests.utils.cookiejar_from_dict(
+        requests.utils.dict_from_cookiejar(session.cookies))
+    new.headers = session.headers.copy()  # type: ignore
     return new
 
+
 def _requires_login(func: Callable) -> Callable:
-    """Decorator to raise an exception if herewith-decorated function is called without being logged in"""
+    """Decorator to raise an exception if herewith-decorated
+        function is called without being logged in"""
     @wraps(func)
     def call(instaloader, *args, **kwargs):
         if not instaloader.c.is_logged_in:
             raise LoginRequiredException("Login required.")
         return func(instaloader, *args, **kwargs)
     return call
+
 
 class Instaloader:
     """
@@ -123,7 +133,7 @@ class Instaloader:
 
     def __init__(self, **kwargs):
         self.logger = logging.getLogger(__package__)
-        
+
         self.s = requests.Session()
         self.c = InstaloaderContext()
 
@@ -146,11 +156,11 @@ class Instaloader:
                 self.c.save_session_to_file(sessionfile)
                 self.logger.info(f'Saved session to {filename}.')
         self.logger.info(f'Logged in as {username}.')
-        
-    def get_profile(self, username:str) -> Profile:
+
+    def get_profile(self, username: str) -> Profile:
         return Profile.from_username(self.c, username)
 
-    def get_post(self, shortcode:str) -> Post:
+    def get_post(self, shortcode: str) -> Post:
         return Post.from_shortcode(self.c, shortcode)
 
     def get_last_user_posts(self, username: str, count: int = 10) -> [Post]:
@@ -159,7 +169,7 @@ class Instaloader:
         return [x for _, x in zip(range(count), profile.get_posts())]
 
     @_requires_login
-    def follow_user(self, profile:Profile) -> (Dict, bool):
+    def follow_user(self, profile: Profile) -> (Dict, bool):
         assert not profile.followed_by_viewer, 'You must unfollow to follow'
         self.c.do_sleep()
         with copy_session(self.c._session) as tmpsession:
@@ -168,7 +178,7 @@ class Instaloader:
             return res.json(), res.status_code == 200
 
     @_requires_login
-    def unfollow_user(self, profile:Profile) -> (Dict, bool):
+    def unfollow_user(self, profile: Profile) -> (Dict, bool):
         assert profile.followed_by_viewer, 'You must follow to unfollow'
         self.c.do_sleep()
         with copy_session(self.c._session) as tmpsession:
@@ -177,7 +187,7 @@ class Instaloader:
             return res.json(), res.status_code == 200
 
     @_requires_login
-    def like_post(self, post:Post) -> (Dict, bool):
+    def like_post(self, post: Post) -> (Dict, bool):
         self.c.do_sleep()
         with copy_session(self.c._session) as tmpsession:
             tmpsession.headers['referer'] = self.url_media % post.shortcode
@@ -185,7 +195,7 @@ class Instaloader:
             return res.json(), res.status_code == 200
 
     @_requires_login
-    def unlike_post(self, post:Post) -> (Dict, bool):
+    def unlike_post(self, post: Post) -> (Dict, bool):
         self.c.do_sleep()
         with copy_session(self.c._session) as tmpsession:
             tmpsession.headers['referer'] = self.url_media % post.shortcode

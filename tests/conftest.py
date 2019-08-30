@@ -4,6 +4,7 @@ import pytest
 import re
 import requests
 
+
 @pytest.fixture
 def mock_request_get(monkeypatch):
     def mock_get(session, url, **kwargs):
@@ -11,7 +12,7 @@ def mock_request_get(monkeypatch):
             _, _, _, scope, shortcode, _ = url.split('/')
         except ValueError:
             _, _, _, scope, shortcode = url.split('/')
-        
+
         if scope == 'p':
             filename = f'p_{shortcode}.json'
         elif scope == 'graphql':
@@ -32,16 +33,16 @@ def mock_request_get(monkeypatch):
                     raise Exception("Could not find \"window._sharedData\" in html response.")
                 jsn = json.loads(match.group(1))
             open(path, 'w').write(json.dumps(jsn, indent=2))
-        
+
         jsn = json.load(open(path, 'r'))
         resp = requests.Response()
         resp.status_code = 200
 
         text = json.dumps(jsn)
-        
-        if not 'graphql' in url:
+
+        if 'graphql' not in url:
             text = f'<script type="text/javascript">window._sharedData = {text};</script>'
-        
+
         resp._content = str.encode(text)
         return resp
 
