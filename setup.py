@@ -1,18 +1,29 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import re
+
 from os import path
 from setuptools import setup, find_packages
-from instabot.__init__ import __version__
 
 here = path.abspath(path.dirname(__file__))
 with open(path.join(here, "requirements.txt"), encoding="utf-8") as f:
     required = [l.strip("\n") for l in f if l.strip("\n") and not l.startswith("#")]
 
+
+def find_version():
+    with open(path.join(path.dirname(__file__), 'instabot/__init__.py')) as f:
+        for line in f:
+            m = re.match("__version__ = '(.*)'", line)
+            if m:
+                return m.group(1)
+    raise SystemExit("Could not find version string.")
+
+
 setup(
     name="instabot",
     packages=find_packages(),
-    version=__version__,
+    version=find_version(),
     python_requires=">3.7.0",
     license="MIT",
     description="Instagram Bot",
