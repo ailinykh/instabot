@@ -36,6 +36,10 @@ jobs:
       run: |
         pip install codecov
         codecov --token=${{ secrets.CODECOV_TOKEN }}
+
+  tag:
+    needs: build
+    steps:
     - name: Add tag to commit if release needed
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
