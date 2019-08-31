@@ -16,7 +16,7 @@ then
     git config --global user.name "Github Bot"
     git tag -a v$CURRENT_VERSION -m "$COMMIT_MESSAGE"
     git remote remove origin
-    git remote add origin https://${GITHUB_TOKEN}@github.com/ailinykh/instabot.git
+    git remote add origin https://ailinykh:${GITHUB_TOKEN}@github.com/ailinykh/instabot.git
     git push origin --tags HEAD
 else
     echo "Current version not greater than release"
