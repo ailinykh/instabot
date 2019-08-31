@@ -1,5 +1,0 @@
-name: 'Tagging commit if version changed'
-description: 'Action looks into version file and adds tag if it changed'
-runs:
-  using: 'node12'
-  main: 'tagging.js'
