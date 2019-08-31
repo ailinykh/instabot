@@ -2,7 +2,7 @@ function version_gt() {
     test "$(printf '%s\n' "$@" | sort -V | head -n 1)" != "$1"
 }
 
-LAST_RELEASE=`git describe master | cut -c2-`
+LAST_RELEASE=`git describe origin/master | cut -c2-`
 CURRENT_VERSION=`grep -F __version__ instabot/__init__.py | awk -F "'" '{print $2}'`
 
 echo "LAST_RELEASE ${LAST_RELEASE}"
