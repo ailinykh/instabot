@@ -40,7 +40,13 @@ class Instabot:
         for username in usernames:
             self.logger.info(f'Processing username {username}')
 
-            for post in self.instaloader.get_last_user_posts(username):
+            try:
+                posts = self.instaloader.get_last_user_posts(username)
+            except ProfileNotExistsException:
+                self.logger.error(f'Profile {username} not found. Soft ban?')
+                return
+
+            for post in posts:
                 self.logger.info(f'Post {post.shortcode} has {post.comments} comments')
 
                 media = self.db.get_media(post)
