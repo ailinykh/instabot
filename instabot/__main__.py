@@ -9,6 +9,7 @@ from collections import OrderedDict
 from config42 import ConfigManager
 from config42.handlers import ArgParse
 
+from .__init__ import __version__
 from .instabot import Instabot
 
 schema = [
@@ -41,7 +42,7 @@ schema = [
         name="session_file",
         key="session_file",
         source=dict(argv=["--session-file"]),
-        description="change the name of session file so to avoid \
+        description="Change the name of session file so to avoid \
             having to login every time. Set False to disable.",
         required=False
     )
@@ -50,6 +51,7 @@ schema = [
 
 def main():
     parser = ArgumentParser(description='Instabot', add_help=False)
+    parser.add_argument('--version', action='version', version=__version__)
     choices = [func for func in dir(Instabot)
                if callable(getattr(Instabot, func)) and not func.startswith('_')]
     parser.add_argument('action', metavar='|'.join(choices), choices=choices)
@@ -68,6 +70,7 @@ def main():
     config.set_many(_config.as_dict())
     config.commit()
 
+    print(config.as_dict())
     logging.config.dictConfig(config.get("logging"))
 
     instabot = Instabot(config)
