@@ -1,6 +1,6 @@
 # instabot
 
-[![Actions Status](https://github.com/ailinykh/instabot/workflows/instabot/badge.svg)](https://github.com/ailinykh/instabot/actions)
+[![Actions Status](https://github.com/ailinykh/instabot/workflows/build/badge.svg)](https://github.com/ailinykh/instabot/actions)
 [![codecov](https://codecov.io/gh/ailinykh/instabot/branch/master/graph/badge.svg)](https://codecov.io/gh/ailinykh/instabot)
 [![Maintainability](https://api.codeclimate.com/v1/badges/dc42ab1ed9378d03bc4f/maintainability)](https://codeclimate.com/github/ailinykh/instabot/maintainability)
 [![Donate](https://img.shields.io/badge/PayPal-Donate-blue.svg)](https://www.paypal.me/anthonyilinykh/10)

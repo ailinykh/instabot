@@ -1,4 +1,4 @@
-name: instabot
+name: build
 
 on: [push]
 
