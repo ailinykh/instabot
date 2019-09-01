@@ -60,6 +60,8 @@ class Instabot:
                         for answer in comment.answers:
                             self.db.create_follower(answer.owner)
 
+                        
+
                     self.db.create_or_update_media(post)
                     # return
                 else:
@@ -94,9 +96,9 @@ class Instabot:
             return profile
 
         # check limits
-        likes_available = 60 - len(self.db.get_resent_likes())
-        follows_available = 60 - (len(self.db.get_resent_followees())
-                                  + len(self.db.get_resent_unfollowees()))
+        likes_available = 60 - len(self.db.get_recent_likes())
+        follows_available = 60 - (len(self.db.get_recent_followees())
+                                  + len(self.db.get_recent_unfollowees()))
 
         self.logger.info(f'Available: likes {likes_available}, follows {follows_available}')
 

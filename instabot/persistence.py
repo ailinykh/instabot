@@ -84,7 +84,7 @@ class Persistence():
         return self._session.query(Media) \
             .filter(Media.shortcode == post.shortcode).first()
 
-    def get_resent_likes(self, seconds: int = 3600) -> [Follower]:
+    def get_recent_likes(self, seconds: int = 3600) -> [Follower]:
         now_time = datetime.now()
         cut_off_time = now_time - timedelta(seconds=seconds)
         return self._session.query(Follower) \
@@ -92,7 +92,7 @@ class Persistence():
             .order_by(desc(Follower.last_liked)) \
             .all()
 
-    def get_resent_followees(self, seconds: int = 3600) -> [Follower]:
+    def get_recent_followees(self, seconds: int = 3600) -> [Follower]:
         now_time = datetime.now()
         cut_off_time = now_time - timedelta(seconds=seconds)
         return self._session.query(Follower) \
@@ -100,7 +100,7 @@ class Persistence():
             .order_by(desc(Follower.last_followed)) \
             .all()
 
-    def get_resent_unfollowees(self, seconds: int = 3600) -> [Follower]:
+    def get_recent_unfollowees(self, seconds: int = 3600) -> [Follower]:
         now_time = datetime.now()
         cut_off_time = now_time - timedelta(seconds=seconds)
         return self._session.query(Follower) \
