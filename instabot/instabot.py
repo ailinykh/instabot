@@ -143,5 +143,14 @@ class Instabot:
             print(json.dumps(pickle.load(sessionfile)))
 
     def test(self, **kwargs):
-        self.logger.info('It works!')
-        self.logger.warning('Warning!')
+        profile = self.config.get('profiles')[0]
+        self.logger.info(f'Checking {profile}')
+
+        try:
+            posts = self.instaloader.get_last_user_posts(profile)
+        except ProfileNotExistsException:
+            self.logger.info(f'Profile not exists')
+            return
+
+        self.logger.warning('Got profile posts {posts}!')
+        return posts
