@@ -27,8 +27,7 @@ class Instabot:
         self.db = Persistence(self.config.get('database'))
 
         now_time = datetime.now()
-        log_string = f"Instabot v{__version__} started \
-            at {now_time.strftime('%d.%m.%Y %H:%M')}"
+        log_string = f"Instabot v{__version__} started at {now_time.strftime('%d.%m.%Y %H:%M')}"
         self.logger.info(log_string)
 
     def collect(self):
@@ -42,14 +41,12 @@ class Instabot:
             self.logger.info(f'Processing username {username}')
 
             for post in self.instaloader.get_last_user_posts(username):
-                self.logger.info(f'Post {post.shortcode} \
-                    has {post.comments} comments')
+                self.logger.info(f'Post {post.shortcode} has {post.comments} comments')
 
                 media = self.db.get_media(post)
 
                 if not media or media.comments * 1.5 < post.comments:
-                    self.logger.info(f'Processing comments \
-                        from {post.shortcode}')
+                    self.logger.info(f'Processing comments from {post.shortcode}')
 
                     for comment in post.get_comments():
                         self.db.create_follower(comment.owner)
@@ -95,8 +92,7 @@ class Instabot:
         follows_available = 60 - (len(self.db.get_resent_followees())
                                   + len(self.db.get_resent_unfollowees()))
 
-        self.logger.info(f'Available: likes {likes_available}, \
-            follows {follows_available}')
+        self.logger.info(f'Available: likes {likes_available}, follows {follows_available}')
 
         if likes_available > 0:
             candidate = self.db.get_candidate_to_like()
@@ -106,8 +102,8 @@ class Instabot:
                 for post in profile.get_posts():
                     j, ok = self.instaloader.like_post(post)
                     if ok:
-                        self.logger.info(f'Successfully liked post {post.shortcode} \
-                            by {profile.username}')
+                        self.logger.info(
+                            f'Successfully liked post {post.shortcode} by {profile.username}')
                         self.db.update(candidate, last_liked=datetime.now())
                     else:
                         self.logger.warning(f'Bad status {j}')
@@ -120,8 +116,7 @@ class Instabot:
             if profile is not None:
                 j, ok = self.instaloader.follow_user(profile)
                 if ok:
-                    self.logger.info(f'Successfully followed \
-                        {profile.username}')
+                    self.logger.info(f'Successfully followed {profile.username}')
                     self.db.update(candidate, last_followed=datetime.now())
                 else:
                     self.logger.warning(f'Bad status {j}')
@@ -130,8 +125,7 @@ class Instabot:
 
     def session(self, jsn: str, filename: str):
         if jsn is None or filename is None:
-            exit('usage: python {} session \
-                session_json session_file'.format(sys.argv[0]))
+            exit(f'usage: python {sys.argv[0]} session session_json session_file')
 
         session = json.loads(jsn)
         with open(filename, 'wb') as sessionfile:
