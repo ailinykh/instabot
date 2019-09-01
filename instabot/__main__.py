@@ -70,7 +70,6 @@ def main():
     config.set_many(_config.as_dict())
     config.commit()
 
-    print(config.as_dict())
     logging.config.dictConfig(config.get("logging"))
 
     instabot = Instabot(config)
