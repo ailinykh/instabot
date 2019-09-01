@@ -43,7 +43,7 @@ class Instabot:
             try:
                 posts = self.instaloader.get_last_user_posts(username)
             except ProfileNotExistsException:
-                self.logger.error(f'Profile {username} not found. Soft ban?')
+                self.logger.info(f'Profile {username} not found. Soft ban?')
                 return
 
             for post in posts:
@@ -60,10 +60,11 @@ class Instabot:
                         for answer in comment.answers:
                             self.db.create_follower(answer.owner)
 
-                        
+                        if len(self.db.get_last_updated_followers()) > 5:
+                            self.logger.info('Time actions limit reached')
+                            return
 
                     self.db.create_or_update_media(post)
-                    # return
                 else:
                     self.logger.info(f'Skipping post {post.shortcode}')
 
