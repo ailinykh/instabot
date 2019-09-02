@@ -31,19 +31,23 @@ class Instabot:
         self.logger.info(log_string)
 
     def collect(self):
-        usernames = self.config.get('profiles')
+        config = self.config.get('collect')
 
-        if not usernames:
+        if not config['profiles']:
             self.logger.error('profiles are empty')
             return
 
-        for username in usernames:
-            self.logger.info(f'Processing username {username}')
+        if not config['limit']:
+            self.logger.error('profiles limit not set')
+            return
+
+        for profile in config['profiles']:
+            self.logger.info(f'Processing profile {profile}')
 
             try:
-                posts = self.instaloader.get_last_user_posts(username)
-            except ProfileNotExistsException:
-                self.logger.info(f'Profile {username} not found. Soft ban?')
+                posts = self.instaloader.get_last_user_posts(profile)
+            except TooManyRequestsException:
+                self.logger.warning(f'Too many requests')
                 return
 
             for post in posts:
@@ -55,13 +59,17 @@ class Instabot:
                     self.logger.info(f'Processing comments from {post.shortcode}')
 
                     for comment in post.get_comments():
-                        self.db.create_follower(comment.owner)
+                        if self.db.get_follower(comment.owner) is None:
+                            self.db.create_follower(comment.owner)
+                            self.logger.info(f'New follower added {comment.owner.username}')
 
                         for answer in comment.answers:
-                            self.db.create_follower(answer.owner)
+                            if self.db.get_follower(answer.owner) is None:
+                                self.db.create_follower(answer.owner)
+                                self.logger.info(f'New follower added {answer.owner.username} from answer')
 
-                        if len(self.db.get_last_updated_followers()) > 5:
-                            self.logger.info('Time actions limit reached')
+                        if len(self.db.get_last_updated_followers()) > config['limit']:
+                            self.logger.info('Profiles time limit reached. Exiting...')
                             return
 
                     self.db.create_or_update_media(post)

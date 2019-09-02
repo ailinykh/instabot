@@ -2,10 +2,12 @@
 login: login
 password: password
 database: sqlite:///db.sqlite3
-profiles:
-  - cristiano
-  - selenagomez
-  - madonna
+collect:
+  profiles:
+    - cristiano
+    - selenagomez
+    - madonna
+  limit: 100
 logging:
   version: 1
   formatters:
