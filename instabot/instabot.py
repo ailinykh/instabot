@@ -9,7 +9,7 @@ import sys
 
 from datetime import datetime
 
-from instaloader import Profile, ProfileNotExistsException
+from instaloader import Profile, ProfileNotExistsException, TooManyRequestsException
 
 from .__init__ import __version__
 from .persistence import Follower, Persistence
@@ -66,7 +66,8 @@ class Instabot:
                         for answer in comment.answers:
                             if self.db.get_follower(answer.owner) is None:
                                 self.db.create_follower(answer.owner)
-                                self.logger.info(f'New follower added {answer.owner.username} from answer')
+                                self.logger.info(
+                                    f'New follower added {answer.owner.username} from answer')
 
                         if len(self.db.get_last_updated_followers()) > config['limit']:
                             self.logger.info('Profiles time limit reached. Exiting...')
