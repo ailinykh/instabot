@@ -65,7 +65,7 @@ class Persistence():
 
     def get_follower(self, profile: Profile) -> Follower:
         return self._session.query(Follower) \
-            .filter(Follower.username == profile.username) \
+            .filter(Follower.userid == profile.userid) \
             .one_or_none()
 
     def create_or_update_media(self, post: Post):
