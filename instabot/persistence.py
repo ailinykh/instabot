@@ -71,7 +71,7 @@ class Persistence():
     def create_or_update_media(self, post: Post):
         media = self.get_media(post)
         if media is not None:
-            media.comments = post.comments()
+            media.comments = post.comments
         else:
             media = Media(
                 shortcode=post.shortcode,
