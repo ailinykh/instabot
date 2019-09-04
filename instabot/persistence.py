@@ -39,6 +39,14 @@ class Media(Base):
     updated = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
 
+class SoftBlock(Base):
+    __tablename__ = 'soft_blocks'
+    blocked = Column(DateTime, default=datetime.now, primary_key=True)
+    checked = Column(DateTime)
+    unblocked = Column(DateTime)
+    comment = Column(String)
+
+
 class Persistence():
 
     def __init__(self, connection_string):
@@ -79,6 +87,14 @@ class Persistence():
                 )
             self._session.add(media)
         self._session.commit()
+
+    def create_soft_block(self):
+        self._session.add(SoftBlock())
+        self._session.commit()
+
+    def get_current_soft_block(self) -> SoftBlock:
+        return self._session.query(SoftBlock) \
+            .filter(SoftBlock.unblocked is None).first()
 
     def get_media(self, post: Post) -> Media:
         return self._session.query(Media) \

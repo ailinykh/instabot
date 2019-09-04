@@ -6,6 +6,7 @@ import logging
 import os
 import pickle
 import sys
+import time
 
 from datetime import datetime
 
@@ -31,6 +32,29 @@ class Instabot:
         self.logger.info(log_string)
 
     def collect(self):
+        last_block = self.db.get_current_soft_block()
+        print(last_block)
+        if last_block is not None:
+            self.logger.info(f'Currently in soft block. Wating...')
+            time.sleep(3600)
+
+        try:
+            self._collect()
+            if last_block is not None:
+                self.db.update(last_block, unblocked=datetime.now())
+            return
+        except TooManyRequestsException:
+            self.logger.info(f'Soft block. Too many requests')
+        except ProfileNotExistsException:
+            self.logger.info(f'Soft block. Profile not exists')
+
+        # Soft block occured :(
+        if last_block is not None:
+            self.db.update(last_block, checked=datetime.now())
+        else:
+            self.db.create_soft_block()
+
+    def _collect(self):
         config = self.config.get('collect')
 
         if not config['profiles']:
@@ -44,11 +68,7 @@ class Instabot:
         for profile in config['profiles']:
             self.logger.info(f'Processing profile {profile}')
 
-            try:
-                posts = self.instaloader.get_last_user_posts(profile)
-            except TooManyRequestsException:
-                self.logger.warning(f'Too many requests')
-                return
+            posts = self.instaloader.get_last_user_posts(profile)
 
             for post in posts:
                 self.logger.info(f'Post {post.shortcode} has {post.comments} comments')
