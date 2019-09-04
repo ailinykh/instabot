@@ -33,7 +33,7 @@ class Instabot:
 
     def collect(self):
         last_block = self.db.get_current_soft_block()
-        print(last_block)
+
         if last_block is not None:
             self.logger.info(f'Currently in soft block. Wating...')
             time.sleep(3600)

@@ -94,7 +94,7 @@ class Persistence():
 
     def get_current_soft_block(self) -> SoftBlock:
         return self._session.query(SoftBlock) \
-            .filter(SoftBlock.unblocked is None).first()
+            .filter(SoftBlock.unblocked.is_(None)).first()
 
     def get_media(self, post: Post) -> Media:
         return self._session.query(Media) \
@@ -133,18 +133,18 @@ class Persistence():
 
     def get_candidate_to_like(self) -> Follower:
         return self._session.query(Follower) \
-            .filter(Follower.last_liked is None) \
-            .filter(Follower.followed_back is None) \
-            .filter(Follower.filtered is None) \
+            .filter(Follower.last_liked.is_(None)) \
+            .filter(Follower.followed_back.is_(None)) \
+            .filter(Follower.filtered.is_(None)) \
             .filter(Follower.is_private.is_(False)) \
             .order_by(func.random()) \
             .first()
 
     def get_candidate_to_follow(self) -> Follower:
         return self._session.query(Follower) \
-            .filter(Follower.last_followed is None) \
-            .filter(Follower.followed_back is None) \
-            .filter(Follower.filtered is None) \
+            .filter(Follower.last_followed.is_(None)) \
+            .filter(Follower.followed_back.is_(None)) \
+            .filter(Follower.filtered.is_(None)) \
             .filter(Follower.is_private.is_(True)) \
             .order_by(func.random()) \
             .first()
