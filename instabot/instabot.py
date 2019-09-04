@@ -35,8 +35,9 @@ class Instabot:
         last_block = self.db.get_current_soft_block()
 
         if last_block is not None:
-            self.logger.info(f'Currently in soft block. Wating...')
-            time.sleep(3600)
+            timeout = (last_block.checked - last_block.blocked).total_seconds() * 0.5 if last_block.checked else 0  # noqa: E501
+            self.logger.info(f'Currently in soft block. Wating {timeout} seconds...')
+            time.sleep(timeout)
 
         try:
             self._collect()
