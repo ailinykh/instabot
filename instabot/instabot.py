@@ -58,10 +58,6 @@ class Instabot:
             self.logger.error('profiles are empty')
             return
 
-        if not config['limit']:
-            self.logger.error('profiles limit not set')
-            return
-
         for profile in config['profiles']:
             self.logger.info(f'Processing profile {profile}')
 
@@ -86,9 +82,11 @@ class Instabot:
                                 self.logger.info(
                                     f'New follower added {answer.owner.username} from answer')
 
-                        if len(self.db.get_last_updated_followers()) > config['limit']:
-                            self.logger.info('Profiles time limit reached. Exiting...')
-                            return
+                        if config['limit']:
+                            last_updated_followers = self.db.get_last_updated_followers()
+                            if len(last_updated_followers) > config['limit']:
+                                self.logger.info('Profiles time limit reached. Exiting...')
+                                return
 
                     self.db.create_or_update_media(post)
                 else:
