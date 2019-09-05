@@ -4,7 +4,7 @@
 import logging
 import time
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from instaloader import Profile, ProfileNotExistsException, TooManyRequestsException
 
@@ -31,8 +31,8 @@ class Instabot:
         last_block = self.db.get_current_soft_block()
 
         if last_block is not None:
-            timeout = (last_block.checked - last_block.blocked).total_seconds() * 0.5 if last_block.checked else 0  # noqa: E501
-            self.logger.info(f'Currently in soft block. Wating {timeout} seconds...')
+            timeout = int((last_block.checked - last_block.blocked).seconds * 0.5) if last_block.checked else 0  # noqa: E501
+            self.logger.info(f'Currently in soft block. Wating {timedelta(seconds=timeout)}...')
             time.sleep(timeout)
 
         try:
