@@ -161,19 +161,6 @@ class Instabot:
 
             # TODO check who follows back
 
-    def session(self, jsn: str, filename: str):
-        if jsn is None or filename is None:
-            exit(f'usage: python {sys.argv[0]} session session_json session_file')
-
-        session = json.loads(jsn)
-        with open(filename, 'wb') as sessionfile:
-            os.chmod(filename, 0o600)
-            pickle.dump(session, sessionfile)
-
-    def print_session(self, filename: str):
-        with open(filename, 'rb') as sessionfile:
-            print(json.dumps(pickle.load(sessionfile)))
-
     def test(self, **kwargs):
         profile = self.config.get('profiles')[0]
         self.logger.info(f'Checking {profile}')
