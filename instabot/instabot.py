@@ -30,14 +30,14 @@ class Instabot:
     def collect(self):
         last_block = self.db.get_current_soft_block()
 
-        if last_block is not None:
+        if last_block:
             timeout = int((last_block.checked - last_block.blocked).seconds * 0.5) if last_block.checked else 0  # noqa: E501
             self.logger.info(f'Currently in soft block. Wating {timedelta(seconds=timeout)}...')
             time.sleep(timeout)
 
         try:
             self._collect()
-            if last_block is not None:
+            if last_block:
                 self.db.update(last_block, unblocked=datetime.now())
             return
         except TooManyRequestsException:
@@ -46,10 +46,14 @@ class Instabot:
             self.logger.info(f'Soft block. Profile not exists')
 
         # Soft block occured :(
-        if last_block is not None:
-            self.db.update(last_block, checked=datetime.now())
-        else:
-            self.db.create_soft_block()
+        if last_block:
+            if len(self.db.get_last_updated_followers()) > 0:
+                self.db.update(last_block, unblocked=datetime.now())
+            else:
+                self.db.update(last_block, checked=datetime.now())
+                return
+
+        self.db.create_soft_block()
 
     def _collect(self):
         config = self.config.get('collect')
