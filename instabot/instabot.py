@@ -82,7 +82,7 @@ class Instabot:
                                 self.logger.info(
                                     f'New follower added {answer.owner.username} from answer')
 
-                        if config['limit']:
+                        if 'limit' in config:
                             last_updated_followers = self.db.get_last_updated_followers()
                             if len(last_updated_followers) > config['limit']:
                                 self.logger.info('Profiles time limit reached. Exiting...')
