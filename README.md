@@ -1,7 +1,7 @@
 # instabot
 
 [![Actions Status](https://github.com/ailinykh/instabot/workflows/build/badge.svg)](https://github.com/ailinykh/instabot/actions)
-[![Tag](https://img.shields.io/github/v/tag/ailinykh/instabot?style=flat-square)](https://github.com/ailinykh/instabot/tags)
+[![Tag](https://img.shields.io/github/v/tag/ailinykh/instabot)](https://github.com/ailinykh/instabot/tags)
 [![codecov](https://codecov.io/gh/ailinykh/instabot/branch/master/graph/badge.svg)](https://codecov.io/gh/ailinykh/instabot)
 [![Maintainability](https://api.codeclimate.com/v1/badges/dc42ab1ed9378d03bc4f/maintainability)](https://codeclimate.com/github/ailinykh/instabot/maintainability)
 [![Donate](https://img.shields.io/badge/Paypal-DONATE-blue.svg?logo=paypal)](https://www.paypal.me/anthonyilinykh/10)
