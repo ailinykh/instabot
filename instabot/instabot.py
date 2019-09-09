@@ -32,6 +32,7 @@ class Instabot:
 
         if last_block:
             timeout = int((last_block.checked - last_block.blocked).seconds * 0.5) if last_block.checked else 0  # noqa: E501
+            timeout = min(timeout, 9_999)  # 3 hours max
             self.logger.info(f'Currently in soft block. Wating {timedelta(seconds=timeout)}...')
             time.sleep(timeout)
 
@@ -47,7 +48,9 @@ class Instabot:
 
         # Soft block occured :(
         if last_block:
-            if len(self.db.get_last_updated_followers()) > 0:
+            added = len(self.db.get_last_updated_followers())
+            if added > 0:
+                self.logger.info(f'New followers: {added}')
                 self.db.update(last_block, unblocked=datetime.now())
             else:
                 self.db.update(last_block, checked=datetime.now())
