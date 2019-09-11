@@ -50,7 +50,7 @@ class Instabot:
         if last_block:
             added = len(self.db.get_last_updated_followers())
             if added > 0:
-                self.logger.info(f'New followers: {added}')
+                self.logger.notify(f'New followers: {added}')
                 self.db.update(last_block, unblocked=datetime.now())
             else:
                 self.db.update(last_block, checked=datetime.now())
@@ -164,7 +164,7 @@ class Instabot:
             # TODO check who follows back
 
     def test(self, **kwargs):
-        profile = self.config.get('profiles')[0]
+        profile = self.config.get('collect')['profiles'][0]
         self.logger.info(f'Checking {profile}')
 
         try:

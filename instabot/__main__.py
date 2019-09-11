@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import logging
 import logging.config
 
 from argparse import ArgumentParser
@@ -11,6 +12,19 @@ from config42.handlers import ArgParse
 
 from .__init__ import __version__
 from .instabot import Instabot
+
+# add new logging level
+NOTIFY_LEVEL = 35
+logging.addLevelName(NOTIFY_LEVEL, "NOTIFY")
+
+
+def notify(self, message, *args, **kws):
+    if self.isEnabledFor(NOTIFY_LEVEL):
+        # Yes, logger takes its '*args' as 'args'.
+        self._log(NOTIFY_LEVEL, message, args, **kws)
+
+
+logging.Logger.notify = notify
 
 schema = [
     dict(
