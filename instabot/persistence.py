@@ -100,12 +100,12 @@ class Persistence():
         return self._session.query(Media) \
             .filter(Media.shortcode == post.shortcode).first()
 
-    def get_last_updated_followers(self, seconds: int = 300) -> [Follower]:
+    def get_last_created_followers(self, seconds: int = 300) -> [Follower]:
         now_time = datetime.now()
         cut_off_time = now_time - timedelta(seconds=seconds)
         return self._session.query(Follower) \
-            .filter(Follower.updated > cut_off_time) \
-            .order_by(desc(Follower.updated)) \
+            .filter(Follower.created > cut_off_time) \
+            .order_by(desc(Follower.created)) \
             .all()
 
     def get_recent_likes(self, seconds: int = 3600) -> [Follower]:

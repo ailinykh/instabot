@@ -48,7 +48,7 @@ class Instabot:
 
         # Soft block occured :(
         if last_block:
-            added = len(self.db.get_last_updated_followers())
+            added = len(self.db.get_last_created_followers())
             if added > 0:
                 self.logger.notify(f'New followers: {added}')
                 self.db.update(last_block, unblocked=datetime.now())
@@ -90,8 +90,8 @@ class Instabot:
                                     f'New follower added {answer.owner.username} from answer')
 
                         if 'limit' in config:
-                            last_updated_followers = self.db.get_last_updated_followers()
-                            if len(last_updated_followers) > config['limit']:
+                            last_created_followers = self.db.get_last_created_followers()
+                            if len(last_created_followers) > config['limit']:
                                 self.logger.info('Profiles time limit reached. Exiting...')
                                 return
 
