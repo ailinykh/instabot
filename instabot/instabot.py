@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import logging
+import random
 import time
 
 from datetime import datetime, timedelta
@@ -32,7 +33,7 @@ class Instabot:
 
         if last_block:
             timeout = int((last_block.checked - last_block.blocked).seconds * 0.5) if last_block.checked else 0  # noqa: E501
-            timeout = min(timeout, 9_999)  # 3 hours max
+            timeout = max(min(timeout, 9_999), 3600)  # 1 hour min 3 hours max
             self.logger.info(f'Currently in soft block. Wating {timedelta(seconds=timeout)}...')
             time.sleep(timeout)
 
@@ -65,10 +66,14 @@ class Instabot:
             self.logger.error('profiles are empty')
             return
 
-        for profile in config['profiles']:
+        profiles = config['profiles']
+        random.shuffle(profiles)
+
+        for profile in profiles:
             self.logger.info(f'Processing profile {profile}')
 
             posts = self.instaloader.get_last_user_posts(profile)
+            random.shuffle(posts)
 
             for post in posts:
                 self.logger.info(f'Post {post.shortcode} has {post.comments} comments')
