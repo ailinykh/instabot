@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import logging
@@ -13,6 +12,7 @@ from .__init__ import __version__
 from .persistence import Follower, Persistence
 from .instaloader import Instaloader
 
+version_check = f"Python 3.6 or above required."
 
 class Instabot:
 
