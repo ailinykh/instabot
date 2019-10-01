@@ -14,6 +14,16 @@ def session(jsn: str, filename: str):
         pickle.dump(session, sessionfile)
 
 
+def convert_session(filename: str):
+    file_name, ext = os.path.splitext(filename)
+    assert ext == '.json', 'Expecting json file'
+    
+    session = json.loads(open(filename, 'r').read())
+    
+    with open(file_name, 'wb') as sessionfile:
+        os.chmod(file_name, 0o600)
+        pickle.dump(session, sessionfile)
+
 def print_session(filename: str):
     with open(filename, 'rb') as sessionfile:
         print(json.dumps(pickle.load(sessionfile)))
