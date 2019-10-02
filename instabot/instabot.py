@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from functools import wraps
 from typing import Callable
 
-from instaloader import Profile, ProfileNotExistsException, TooManyRequestsException
+from instaloader import ProfileNotExistsException, TooManyRequestsException
 
 from .__init__ import __version__
 from .persistence import Follower, Persistence
@@ -129,27 +129,27 @@ class Instabot:
             self.config.get('password')
             )
 
-        def validate_profile(candidate: Follower) -> Profile:
+        def validate_profile(candidate: Follower) -> bool:
             try:
                 profile = self.instaloader.get_profile(candidate.username)
             except ProfileNotExistsException:
                 self.logger.warning(f'Profile {candidate.username} not found.')
                 self.db.update(candidate, filtered='user not found')
-                return None
+                return False
 
             # check already follower
             if profile.follows_viewer:
                 self.logger.warning(f'{profile.username} already a follower')
                 self.db.update(candidate, filtered='already follower')
-                return None
+                return False
 
             # check already followed
             if profile.followed_by_viewer:
                 self.logger.warning(f'{profile.username} already followed')
                 self.db.update(candidate, filtered='already followed')
-                return None
+                return False
 
-            return profile
+            return True
 
         # check limits
         likes_available = 60 - len(self.db.get_recent_likes())
@@ -159,16 +159,15 @@ class Instabot:
         self.logger.info(f'Available: likes {likes_available}, follows {follows_available}')
 
         if likes_available > 0:
-            candidate = self.db.get_candidate_to_like()
-            profile = validate_profile(candidate)
+            profile = self.db.get_candidate_to_like()
 
-            if profile is not None:
+            if validate_profile(profile):
                 for post in profile.get_posts():
                     j, ok = self.instaloader.like_post(post)
                     if ok:
                         self.logger.info(
                             f'Successfully liked post {post.shortcode} by {profile.username}')
-                        self.db.update(candidate, last_liked=datetime.now())
+                        self.db.update(profile, last_liked=datetime.now())
                     elif j['spam']:
                         raise TooManyRequestsException
                     else:
@@ -176,14 +175,13 @@ class Instabot:
                     break
 
         if follows_available > 0:
-            candidate = self.db.get_candidate_to_follow()
-            profile = validate_profile(candidate)
+            profile = self.db.get_candidate_to_follow()
 
-            if profile is not None:
+            if validate_profile(profile):
                 j, ok = self.instaloader.follow_user(profile)
                 if ok:
                     self.logger.info(f'Successfully followed {profile.username}')
-                    self.db.update(candidate, last_followed=datetime.now())
+                    self.db.update(profile, last_followed=datetime.now())
                 elif j['spam']:
                     raise TooManyRequestsException
                 else:
