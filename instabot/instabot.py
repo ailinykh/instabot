@@ -5,6 +5,8 @@ import random
 import time
 
 from datetime import datetime, timedelta
+from functools import wraps
+from typing import Callable
 
 from instaloader import Profile, ProfileNotExistsException, TooManyRequestsException
 
@@ -12,7 +14,53 @@ from .__init__ import __version__
 from .persistence import Follower, Persistence
 from .instaloader import Instaloader
 
-version_check = f"Python 3.6 or above required."
+version_check = f'Python 3.6 or above required.'
+
+
+def _blocking_handler(anonymously: bool = True) -> Callable:
+    def actual_blocking_handler(func: Callable) -> Callable:
+        """Decorator to handle blocking exceptions"""
+        @wraps(func)
+        def call(instabot, *args, **kwargs):
+            userid = 0
+
+            if not anonymously:
+                profile = instabot.instaloader.get_profile(instabot.config.get('login'))
+                userid = profile.userid
+
+            status = instabot.db.get_current_status(userid)
+
+            if status and not status.unblocked:
+                timeout = int((status.checked - status.blocked).seconds * 0.5) if status.checked else 0  # noqa: E501
+                timeout = max(min(timeout, 9_999), 3600)  # 1 hour min 3 hours max
+                instabot.logger.info(
+                    f'Currently in soft block. Wating {timedelta(seconds=timeout)}...')
+                time.sleep(timeout)
+
+            try:
+                rv = func(instabot, *args, **kwargs)
+                if status:
+                    instabot.db.update(status, unblocked=datetime.now())
+                return rv
+            except TooManyRequestsException:
+                instabot.logger.info(f'Soft block. Too many requests')
+            except ProfileNotExistsException:
+                instabot.logger.info(f'Soft block. Profile not exists')
+
+            # Soft block occured :(
+            if status:
+                added = len(instabot.db.get_last_created_followers())
+                if added > 0:
+                    instabot.logger.notify(f'New followers: {added}')
+                    instabot.db.update(status, unblocked=datetime.now())
+                else:
+                    instabot.db.update(status, checked=datetime.now())
+                    return
+
+            instabot.db.create_status(userid=userid)
+        return call
+    return actual_blocking_handler
+
 
 class Instabot:
 
@@ -28,38 +76,8 @@ class Instabot:
         log_string = f"Instabot v{__version__} started at {now_time.strftime('%d.%m.%Y %H:%M')}"
         self.logger.info(log_string)
 
+    @_blocking_handler
     def collect(self):
-        last_block = self.db.get_current_soft_block()
-
-        if last_block:
-            timeout = int((last_block.checked - last_block.blocked).seconds * 0.5) if last_block.checked else 0  # noqa: E501
-            timeout = max(min(timeout, 9_999), 3600)  # 1 hour min 3 hours max
-            self.logger.info(f'Currently in soft block. Wating {timedelta(seconds=timeout)}...')
-            time.sleep(timeout)
-
-        try:
-            self._collect()
-            if last_block:
-                self.db.update(last_block, unblocked=datetime.now())
-            return
-        except TooManyRequestsException:
-            self.logger.info(f'Soft block. Too many requests')
-        except ProfileNotExistsException:
-            self.logger.info(f'Soft block. Profile not exists')
-
-        # Soft block occured :(
-        if last_block:
-            added = len(self.db.get_last_created_followers())
-            if added > 0:
-                self.logger.notify(f'New followers: {added}')
-                self.db.update(last_block, unblocked=datetime.now())
-            else:
-                self.db.update(last_block, checked=datetime.now())
-                return
-
-        self.db.create_soft_block()
-
-    def _collect(self):
         config = self.config.get('collect')
 
         if not config['profiles']:
@@ -104,13 +122,14 @@ class Instabot:
                 else:
                     self.logger.info(f'Skipping post {post.shortcode}')
 
+    @_blocking_handler(anonymously=False)
     def job(self):  # workflow
         self.instaloader.login(
             self.config.get('login'),
             self.config.get('password')
             )
 
-        def get_valid_profile(candidate: Follower) -> Profile:
+        def validate_profile(candidate: Follower) -> Profile:
             try:
                 profile = self.instaloader.get_profile(candidate.username)
             except ProfileNotExistsException:
@@ -141,7 +160,7 @@ class Instabot:
 
         if likes_available > 0:
             candidate = self.db.get_candidate_to_like()
-            profile = get_valid_profile(candidate)
+            profile = validate_profile(candidate)
 
             if profile is not None:
                 for post in profile.get_posts():
@@ -150,19 +169,23 @@ class Instabot:
                         self.logger.info(
                             f'Successfully liked post {post.shortcode} by {profile.username}')
                         self.db.update(candidate, last_liked=datetime.now())
+                    elif j['spam']:
+                        raise TooManyRequestsException
                     else:
                         self.logger.warning(f'Bad status {j}')
                     break
 
         if follows_available > 0:
             candidate = self.db.get_candidate_to_follow()
-            profile = get_valid_profile(candidate)
+            profile = validate_profile(candidate)
 
             if profile is not None:
                 j, ok = self.instaloader.follow_user(profile)
                 if ok:
                     self.logger.info(f'Successfully followed {profile.username}')
                     self.db.update(candidate, last_followed=datetime.now())
+                elif j['spam']:
+                    raise TooManyRequestsException
                 else:
                     self.logger.warning(f'Bad status {j}')
 
