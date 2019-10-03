@@ -35,7 +35,7 @@ def _blocking_handler(anonymously: bool = True) -> Callable:
                 timeout = max(min(timeout, 9_999), 3600)  # 1 hour min 3 hours max
                 instabot.logger.info(
                     f'Currently in soft block. Wating {timedelta(seconds=timeout)}...')
-                # time.sleep(timeout)
+                time.sleep(timeout)
 
             try:
                 rv = func(instabot, *args, **kwargs)
