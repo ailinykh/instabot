@@ -36,7 +36,8 @@ def _blocking_handler(anonymously: bool = True) -> Callable:
                 timeout = timedelta(seconds=seconds)
                 instabot.logger.info(
                     f'Currently in soft block. Timeout {timeout}...')
-                instabot.logger.info(f'Next attempt in {(datetime.now() + timeout).strftime("%Y-%m-%d %H:%M:%S")}')
+                instabot.logger.info(
+                    f'Next attempt in {(datetime.now() + timeout).strftime("%Y-%m-%d %H:%M:%S")}')
                 time.sleep(seconds)
 
             try:
