@@ -31,11 +31,13 @@ def _blocking_handler(anonymously: bool = True) -> Callable:
             status = instabot.db.get_current_status(userid)
 
             if status and not status.unblocked:
-                timeout = int((status.checked - status.blocked).seconds * 0.5) if status.checked else 0  # noqa: E501
-                timeout = max(min(timeout, 9_999), 3600)  # 1 hour min 3 hours max
+                seconds = int((status.checked - status.blocked).seconds * 0.5) if status.checked else 0  # noqa: E501
+                seconds = max(seconds, 3600)  # 1 hour min
+                timeout = timedelta(seconds=seconds)
                 instabot.logger.info(
-                    f'Currently in soft block. Wating {timedelta(seconds=timeout)}...')
-                time.sleep(timeout)
+                    f'Currently in soft block. Timeout {timeout}...')
+                instabot.logger.info(f'Next attempt in {(datetime.now() + timeout).strftime("%Y-%m-%d %H:%M:%S")}')
+                time.sleep(seconds)
 
             try:
                 rv = func(instabot, *args, **kwargs)
@@ -74,6 +76,7 @@ class Instabot:
 
         now_time = datetime.now()
         log_string = f"Instabot v{__version__} started at {now_time.strftime('%d.%m.%Y %H:%M')}"
+        self.logger.info('==============')
         self.logger.info(log_string)
 
     @_blocking_handler
